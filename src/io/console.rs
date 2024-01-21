@@ -100,10 +100,20 @@ impl Writer {
         self.x_position += 1;
     }
 
+    pub fn backspace(&mut self) {
+        if self.x_position == 0 {
+            return;
+        }
+        self.x_position -= 1;
+        self.write_byte(b' ');
+        self.x_position -= 1;
+    }
+
     pub fn write_string(&mut self, s: &str) {
         for byte in s.bytes() {
             match byte {
                 0x20..=0x7e | b'\n' => self.write_byte(byte),
+                8 => self.backspace(),
                 _ => self.write_byte(0xfe),
             }
         }
