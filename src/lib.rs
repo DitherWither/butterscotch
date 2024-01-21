@@ -1,16 +1,20 @@
 #![no_std]
 #![cfg_attr(test, no_main)]
 #![feature(custom_test_frameworks)]
+#![feature(abi_x86_interrupt)]
+#![feature(lazy_cell)]
 #![test_runner(test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 pub mod io;
 pub mod kernel;
-pub use kernel::main;
+pub(crate) mod interrupt;
+pub use kernel::init;
 
 #[cfg(test)]
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    init();
     test_main();
     loop {}
 }
