@@ -12,7 +12,7 @@ pub extern "C" fn _start() -> ! {
     butterscotch_kernel::init();
     #[cfg(test)]
     test_main();
-    loop {}
+    hlt_loop()
 }
 
 #[test_case]
@@ -30,5 +30,5 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
     eprintln!("{}", info);
-    loop {}
+    hlt_loop()
 }

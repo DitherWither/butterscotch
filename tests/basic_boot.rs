@@ -4,13 +4,13 @@
 #![test_runner(butterscotch_kernel::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-use butterscotch_kernel::println;
+use butterscotch_kernel::{println, hlt_loop};
 
 #[no_mangle] // don't mangle the name of this function
 pub extern "C" fn _start() -> ! {
     test_main();
 
-    loop {}
+    hlt_loop();
 }
 
 #[test_case]
