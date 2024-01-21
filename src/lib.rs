@@ -6,9 +6,10 @@
 #![test_runner(test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+pub mod gdt;
+pub mod interrupt;
 pub mod io;
 pub mod kernel;
-pub(crate) mod interrupt;
 pub use kernel::init;
 
 #[cfg(test)]
@@ -36,7 +37,7 @@ where
 
 #[allow(dead_code)]
 pub fn test_runner(tests: &[&dyn crate::Testable]) {
-    serial_println!(" ******** Butterscotch OS 0.1.0 Alpha ********\n");
+    serial_println!(" ******** Butterscotch OS 0.1.0 Alpha Testing Mode ********\n");
     serial_println!("Running {} tests", tests.len());
     for test in tests {
         test.run();

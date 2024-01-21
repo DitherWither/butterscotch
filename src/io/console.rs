@@ -1,6 +1,8 @@
 use core::fmt;
 use spin::Mutex;
 
+use super::serial::_serial_print;
+
 const BUFFER_HEIGHT: usize = 25;
 const BUFFER_WIDTH: usize = 80;
 
@@ -145,9 +147,8 @@ pub fn _print(args: fmt::Arguments) {
 
 #[doc(hidden)]
 pub fn _eprint(args: fmt::Arguments) {
-    use core::fmt::Write;
-    // Currently same as _print, as we don't buffer any console output
-    CONSOLE.lock().write_fmt(args).unwrap();
+    _print(args);
+    _serial_print(args);
 }
 
 #[test_case]
