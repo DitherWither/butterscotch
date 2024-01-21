@@ -3,6 +3,17 @@ use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
 static mut IDT: InterruptDescriptorTable = InterruptDescriptorTable::new();
 
+macro_rules! basic_handler {
+    ($e:expr, $t:literal) => {
+        {
+            extern "x86-interrupt" fn handler(stack_frame: InterruptStackFrame) {
+                $crate::eprintln!("CPU Exception: {}\n{:#?}", $t, stack_frame);
+            }
+            $e.set_handler_fn(handler);
+        }
+    };
+}
+
 /// # Safety
 ///
 /// Should only be called on one thread, once
@@ -28,7 +39,9 @@ pub unsafe fn _init(test_handler: bool) {
             double_fault_handler
         })
         .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
-    IDT.breakpoint.set_handler_fn(breakpoint_handler);
+    basic_handler!(IDT.breakpoint, "Breakpoint");
+    // TODO add handlers for other functions
+    
     IDT.load();
 }
 
@@ -48,9 +61,13 @@ extern "x86-interrupt" fn test_double_fault_handler(
     exit_qemu(QemuExitCode::Success);
 }
 
-extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
-    println!("CPU Exception: Breakpoint\n{:#?}", stack_frame);
-}
+// extern "x86-interrupt" fn division_error_handler(stack_frame: InterruptStackFrame) {
+//     println!("CPU Exception: Breakpoint\n{:#?}", stack_frame);
+// }
+
+// extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame) {
+//     println!("CPU Exception: Breakpoint\n{:#?}", stack_frame);
+// }
 
 #[test_case]
 fn test_breakpoint_exception() {
