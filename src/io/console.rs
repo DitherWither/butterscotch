@@ -7,9 +7,7 @@ const BUFFER_WIDTH: usize = 80;
 pub static CONSOLE: Mutex<Writer> = Mutex::new(Writer {
     x_position: 0,
     text_color: TextColor::new(Color::White, Color::Black),
-    buffer: Buffer {
-        addr: 0xb8000,
-    },
+    buffer: Buffer { addr: 0xb8000 },
 });
 
 #[allow(dead_code)]
@@ -55,7 +53,7 @@ struct ScreenCharacter {
 struct Buffer {
     // Storing the address as a pointer causes issues
     // with the compiler. Notably, it wants us to implement
-    // `Send` on it. The way to fix this is to just store 
+    // `Send` on it. The way to fix this is to just store
     // the raw address of the pointer, and cast it at the
     // last moment
     addr: usize,
@@ -138,3 +136,39 @@ impl fmt::Write for Writer {
         Ok(())
     }
 }
+
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    use core::fmt::Write;
+    CONSOLE.lock().write_fmt(args).unwrap();
+}
+
+#[doc(hidden)]
+pub fn _eprint(args: fmt::Arguments) {
+    use core::fmt::Write;
+    // Currently same as _print, as we don't buffer any console output
+    CONSOLE.lock().write_fmt(args).unwrap();
+}
+
+// #[test_case]
+// fn test_println_simple() {
+//     // If the implementation didn't panic, its safe to assume it succeeded
+//     crate::println!("test_println_simple output");
+// }
+
+// #[test_case]
+// fn test_println_many() {
+//     for _ in 0..256 {
+//         crate::println!("test_println_many output");
+//     }
+// }
+
+// #[test_case]
+// fn test_println_output() {
+//     let s = "Some test string that fits on a single line";
+//     crate::println!("{}", s);
+//     for (i, c) in s.chars().enumerate() {
+//         let screen_char = CONSOLE.lock().buffer.get(i, BUFFER_HEIGHT - 2);
+//         assert_eq!(char::from(screen_char.ascii_character), c);
+//     }
+// }
