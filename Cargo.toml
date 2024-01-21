@@ -1,0 +1,9 @@
+[package]
+name = "butterscotch_kernel"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# Older verson, as the framebuffer refuses to work on latest one
+bootloader = "0.9.8"
+spin = "0.9.8"
