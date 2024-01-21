@@ -30,6 +30,7 @@ harness = false
 [dependencies]
 # Older verson, as the framebuffer refuses to work on latest one
 bootloader = "0.9.8"
+pc-keyboard = "0.7.0"
 pic8259 = "0.10.4"
 spin = "0.9.8"
 uart_16550 = "0.3.0"
