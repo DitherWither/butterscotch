@@ -20,13 +20,16 @@ impl Serial {
 
 #[doc(hidden)]
 pub fn _serial_print(args: ::core::fmt::Arguments) {
-    let mut serial = SERIAL1.lock();
-    if !serial.is_initialized {
-        serial.port.init();
-    }
-    use core::fmt::Write;
-    serial
-        .port
-        .write_fmt(args)
-        .expect("Printing to serial failed");
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        let mut serial = SERIAL1.lock();
+        if !serial.is_initialized {
+            serial.port.init();
+        }
+        use core::fmt::Write;
+        serial
+            .port
+            .write_fmt(args)
+            .expect("Printing to serial failed");
+    })
 }
