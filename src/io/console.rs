@@ -150,25 +150,25 @@ pub fn _eprint(args: fmt::Arguments) {
     CONSOLE.lock().write_fmt(args).unwrap();
 }
 
-// #[test_case]
-// fn test_println_simple() {
-//     // If the implementation didn't panic, its safe to assume it succeeded
-//     crate::println!("test_println_simple output");
-// }
+#[test_case]
+fn test_println_simple() {
+    // If the implementation didn't panic, its safe to assume it succeeded
+    crate::println!("test_println_simple output");
+}
 
-// #[test_case]
-// fn test_println_many() {
-//     for _ in 0..256 {
-//         crate::println!("test_println_many output");
-//     }
-// }
+#[test_case]
+fn test_println_many() {
+    for _ in 0..256 {
+        crate::println!("test_println_many output");
+    }
+}
 
-// #[test_case]
-// fn test_println_output() {
-//     let s = "Some test string that fits on a single line";
-//     crate::println!("{}", s);
-//     for (i, c) in s.chars().enumerate() {
-//         let screen_char = CONSOLE.lock().buffer.get(i, BUFFER_HEIGHT - 2);
-//         assert_eq!(char::from(screen_char.ascii_character), c);
-//     }
-// }
+#[test_case]
+fn test_println_output() {
+    let s = "Some test string that fits on a single line";
+    crate::println!("{}", s);
+    for (i, c) in s.chars().enumerate() {
+        let screen_char = CONSOLE.lock().buffer.get(i, BUFFER_HEIGHT - 2);
+        assert_eq!(char::from(screen_char.ascii_character), c);
+    }
+}

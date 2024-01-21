@@ -17,3 +17,8 @@ pub extern "C" fn _start() -> ! {
 fn test_println() {
     println!("test_println output");
 }
+
+#[panic_handler]
+fn panic(info: &core::panic::PanicInfo) -> ! {
+    butterscotch_kernel::test_panic_handler(info);
+}
