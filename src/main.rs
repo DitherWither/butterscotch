@@ -9,8 +9,11 @@ use butterscotch_kernel::*;
 #[no_mangle]
 #[allow(clippy::empty_loop)]
 pub extern "C" fn _start() -> ! {
-    butterscotch_kernel::main();
+    butterscotch_kernel::init();
 
+    x86_64::instructions::interrupts::int3(); // new
+
+    println!("It didn't crash");
     #[cfg(test)]
     test_main();
     loop {}
