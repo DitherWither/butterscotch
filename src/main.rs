@@ -9,12 +9,13 @@ use butterscotch_kernel::*;
 #[no_mangle]
 #[allow(clippy::empty_loop)]
 pub extern "C" fn _start() -> ! {
-    println!("Butterscotch OS 0.1.0 Alpha");
+    butterscotch_kernel::main();
 
     #[cfg(test)]
     test_main();
     loop {}
 }
+
 
 #[test_case]
 fn trivial_assertion() {

@@ -5,6 +5,8 @@
 #![reexport_test_harness_main = "test_main"]
 
 pub mod io;
+pub mod kernel;
+pub use kernel::main;
 
 #[cfg(test)]
 #[no_mangle]
