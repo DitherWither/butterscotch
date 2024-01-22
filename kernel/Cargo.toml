@@ -1,0 +1,14 @@
+[package]
+name = "butterscotch_kernel"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+limine = "0.1.12"
+noto-sans-mono-bitmap = "0.2.0"
+pc-keyboard = "0.7.0"
+pic8259 = "0.10.4"
+spin = "0.9.8"
+talc = "4.0.0"
+uart_16550 = "0.3.0"
+x86_64 = "0.14.11"

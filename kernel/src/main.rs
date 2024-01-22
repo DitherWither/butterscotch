@@ -1,19 +1,33 @@
 #![no_std]
 #![no_main]
+#![feature(abi_x86_interrupt)]
+#![feature(const_mut_refs)]
+#![feature(lazy_cell)]
 #![feature(custom_test_frameworks)]
 #![test_runner(butterscotch_kernel::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
 extern crate alloc;
 
+pub mod gdt;
+pub mod interrupt;
+pub mod io;
+pub mod kernel;
+pub use kernel::init;
+pub mod allocator;
+pub mod memory;
+
 use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
-use bootloader::{entry_point, BootInfo};
-use butterscotch_kernel::*;
 
-entry_point!(kernel_main);
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
+    }
+}
 
-fn kernel_main(boot_info: &'static BootInfo) -> ! {
-    butterscotch_kernel::init(boot_info);
+#[no_mangle]
+unsafe extern "C" fn _start() -> ! {
+    init();
 
     // allocate a number on the heap
     let heap_value = Box::new(41);
@@ -39,27 +53,11 @@ fn kernel_main(boot_info: &'static BootInfo) -> ! {
         Rc::strong_count(&cloned_reference)
     );
 
-    #[cfg(test)]
-    test_main();
-
     eprintln!("Kernel did not crash");
 
     hlt_loop()
 }
 
-#[test_case]
-#[allow(clippy::eq_op)]
-fn trivial_assertion() {
-    assert_eq!(1, 1);
-}
-
-#[cfg(test)]
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
-    test_panic_handler(info);
-}
-
-#[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
     eprintln!("{}", info);
