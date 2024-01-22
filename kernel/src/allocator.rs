@@ -30,9 +30,17 @@ pub fn init(
             .allocate_frame()
             .ok_or(MapToError::FrameAllocationFailed)?;
         let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
-        unsafe { mapper.map_to_with_table_flags(page, frame, flags, 
-            PageTableFlags::PRESENT | PageTableFlags::WRITABLE 
-            , frame_allocator)?.flush() }
+        unsafe {
+            mapper
+                .map_to_with_table_flags(
+                    page,
+                    frame,
+                    flags,
+                    PageTableFlags::PRESENT | PageTableFlags::WRITABLE,
+                    frame_allocator,
+                )?
+                .flush()
+        }
     }
     unsafe {
         ALLOCATOR

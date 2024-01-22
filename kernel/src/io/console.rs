@@ -1,164 +1,149 @@
 use core::fmt;
+use core::fmt::Write;
+use noto_sans_mono_bitmap::get_raster;
+use noto_sans_mono_bitmap::get_raster_width;
+use noto_sans_mono_bitmap::FontWeight;
+use noto_sans_mono_bitmap::RasterHeight;
+use noto_sans_mono_bitmap::RasterizedChar;
 use spin::Mutex;
 
-const BUFFER_HEIGHT: usize = 25;
-const BUFFER_WIDTH: usize = 80;
+use super::framebuffer;
+use super::framebuffer::color;
 
-pub static CONSOLE: Mutex<Writer> = Mutex::new(Writer {
-    x_position: 0,
-    text_color: TextColor::new(Color::White, Color::Black),
-    buffer: Buffer { addr: 0xb8000 },
-});
+const LINE_SPACING: usize = 2;
+const LETTER_SPACING: usize = 0;
+const BORDER_PADDING: usize = 1;
+const DEFAULT_BACKGROUND_COLOR: u32 = color::from_rgb(20, 20, 20);
 
-#[allow(dead_code)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum Color {
-    Black = 0,
-    Blue = 1,
-    Green = 2,
-    Cyan = 3,
-    Red = 4,
-    Magenta = 5,
-    Brown = 6,
-    LightGray = 7,
-    DarkGray = 8,
-    LightBlue = 9,
-    LightGreen = 10,
-    LightCyan = 11,
-    LightRed = 12,
-    Pink = 13,
-    Yellow = 14,
-    White = 15,
+mod font_constants {
+
+    use super::*;
+
+    pub const CHAR_RASTER_HEIGHT: RasterHeight = RasterHeight::Size16;
+    pub const CHAR_RASTER_WIDTH: usize = get_raster_width(FontWeight::Regular, CHAR_RASTER_HEIGHT);
+    pub const BACKUP_CHAR: char = '�'; // Fallback if character can't be printed
+    pub const FONT_WEIGHT: FontWeight = FontWeight::Regular;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(transparent)]
-struct TextColor(u8);
-
-impl TextColor {
-    const fn new(foreground_color: Color, background_color: Color) -> TextColor {
-        TextColor((background_color as u8) << 4 | (foreground_color as u8))
+/// Gets the raster of the character, or backup character
+fn get_char_raster(c: char) -> RasterizedChar {
+    fn get(c: char) -> Option<RasterizedChar> {
+        get_raster(
+            c,
+            font_constants::FONT_WEIGHT,
+            font_constants::CHAR_RASTER_HEIGHT,
+        )
     }
+    get(c).unwrap_or_else(|| {
+        get(font_constants::BACKUP_CHAR).expect("Should get raster of backup char.")
+    })
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[repr(C)]
-struct ScreenCharacter {
-    ascii_character: u8,
-    text_color: TextColor,
+pub static CONSOLE: Mutex<Console> = Mutex::new(Console::new());
+
+pub struct Console {
+    x_pos: usize,
+    y_pos: usize,
+    text_color_r: u8,
+    text_color_g: u8,
+    text_color_b: u8,
 }
 
-#[repr(transparent)]
-struct Buffer {
-    // Storing the address as a pointer causes issues
-    // with the compiler. Notably, it wants us to implement
-    // `Send` on it. The way to fix this is to just store
-    // the raw address of the pointer, and cast it at the
-    // last moment
-    addr: usize,
-}
-
-impl Buffer {
-    fn write(&self, x: usize, y: usize, value: ScreenCharacter) {
-        let ptr = self.addr as *mut ScreenCharacter;
-        unsafe { ptr.add(y * BUFFER_WIDTH + x).write_volatile(value) }
+impl Console {
+    pub const fn new() -> Self {
+        Self {
+            x_pos: BORDER_PADDING,
+            y_pos: BORDER_PADDING,
+            text_color_r: 255,
+            text_color_b: 255,
+            text_color_g: 255,
+        }
     }
 
-    fn get(&self, x: usize, y: usize) -> ScreenCharacter {
-        let ptr = self.addr as *mut ScreenCharacter;
-        unsafe { ptr.add(y * BUFFER_WIDTH + x).read_volatile() }
+    pub fn clear_screen(&mut self) {
+        self.x_pos = BORDER_PADDING;
+        self.y_pos = BORDER_PADDING;
+        framebuffer::clear(DEFAULT_BACKGROUND_COLOR);
     }
-}
 
-pub struct Writer {
-    x_position: usize,
-    text_color: TextColor,
-    buffer: Buffer,
-}
+    pub fn newline(&mut self) {
+        self.y_pos += font_constants::CHAR_RASTER_HEIGHT.val() + LINE_SPACING;
+        self.carriage_return();
+    }
 
-impl Writer {
-    pub fn write_byte(&mut self, byte: u8) {
-        if byte == b'\n' {
-            self.new_line();
+    pub fn carriage_return(&mut self) {
+        self.x_pos = BORDER_PADDING;
+    }
+
+    pub fn write_char(&mut self, c: char) {
+        if framebuffer::width() == 0 || framebuffer::height() == 0 {
             return;
         }
-
-        if self.x_position >= BUFFER_WIDTH {
-            self.new_line();
-        }
-        self.buffer.write(
-            self.x_position,
-            BUFFER_HEIGHT - 1,
-            ScreenCharacter {
-                ascii_character: byte,
-                text_color: self.text_color,
-            },
-        );
-        self.x_position += 1;
-    }
-
-    pub fn backspace(&mut self) {
-        if self.x_position == 0 {
-            return;
-        }
-        self.x_position -= 1;
-        self.write_byte(b' ');
-        self.x_position -= 1;
-    }
-
-    pub fn write_string(&mut self, s: &str) {
-        for byte in s.bytes() {
-            match byte {
-                0x20..=0x7e | b'\n' => self.write_byte(byte),
-                8 => self.backspace(),
-                _ => self.write_byte(0xfe),
+        match c {
+            '\n' => self.newline(),
+            '\r' => self.carriage_return(),
+            c => {
+                let new_xpos = self.x_pos + font_constants::CHAR_RASTER_WIDTH;
+                if new_xpos >= framebuffer::width() {
+                    self.newline();
+                }
+                let new_ypos =
+                    self.y_pos + font_constants::CHAR_RASTER_HEIGHT.val() + BORDER_PADDING;
+                if new_ypos >= framebuffer::height() {
+                    self.clear_screen(); // TODO implement scrolling
+                }
+                self.write_rendered_char(get_char_raster(c));
             }
         }
     }
 
-    fn new_line(&mut self) {
-        for i in 1..BUFFER_HEIGHT {
-            for j in 0..BUFFER_WIDTH {
-                let character = self.buffer.get(j, i);
-                self.buffer.write(j, i - 1, character);
+    fn write_rendered_char(&mut self, rendered_char: RasterizedChar) {
+        for (y, row) in rendered_char.raster().iter().enumerate() {
+            for (x, byte) in row.iter().enumerate() {
+                self.write_pixel(self.x_pos + x, self.y_pos + y, *byte);
             }
         }
-        self.clear_row(BUFFER_HEIGHT - 1);
-        self.x_position = 0;
+        self.x_pos += rendered_char.width() + LETTER_SPACING;
     }
 
-    fn clear_row(&mut self, row: usize) {
-        let blank = ScreenCharacter {
-            ascii_character: b' ',
-            text_color: self.text_color,
-        };
+    fn write_pixel(&self, x: usize, y: usize, intensity: u8) {
+        let intensity_norm = intensity as f32 / u8::MAX as f32;
+        let color = color::from_rgba(20, 20, 20, 1.0 - intensity_norm)
+            + color::from_rgba(
+                self.text_color_r,
+                self.text_color_g,
+                self.text_color_b,
+                intensity_norm,
+            );
 
-        for i in 0..BUFFER_WIDTH {
-            self.buffer.write(i, row, blank);
-        }
+        framebuffer::set_pixel(x, y, color);
     }
 }
 
-impl fmt::Write for Writer {
+unsafe impl Send for Console {}
+unsafe impl Sync for Console {}
+
+impl fmt::Write for Console {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        self.write_string(s);
+        for c in s.chars() {
+            self.write_char(c);
+        }
         Ok(())
     }
 }
 
+pub fn clear_screen() {
+    CONSOLE.lock().clear_screen();
+}
+
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
-    // use core::fmt::Write;
-    // use x86_64::instructions::interrupts;
-    // interrupts::without_interrupts(|| CONSOLE.lock().write_fmt(args).unwrap())
-    _eprint(args);
+    let mut con = CONSOLE.lock();
+    let _ = con.write_fmt(args);
 }
 
 #[doc(hidden)]
 pub fn _eprint(args: fmt::Arguments) {
-    // _print(args);
+    _print(args);
     crate::io::serial::_serial_print(args);
 }
-
-
