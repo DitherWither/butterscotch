@@ -6,22 +6,25 @@
 #![test_runner(test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+extern crate alloc;
+
 pub mod gdt;
 pub mod interrupt;
 pub mod io;
 pub mod kernel;
 pub use kernel::init;
+pub mod allocator;
 pub mod memory;
 
 #[cfg(test)]
-use bootloader::entry_point;
+use bootloader::{entry_point, BootInfo};
 
 #[cfg(test)]
 entry_point!(test_kernel_main);
 
 #[cfg(test)]
 pub fn test_kernel_main(boot_info: &'static BootInfo) -> ! {
-    init();
+    init(boot_info);
     test_main();
     hlt_loop()
 }

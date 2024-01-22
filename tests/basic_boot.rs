@@ -4,7 +4,7 @@
 #![test_runner(butterscotch_kernel::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-use butterscotch_kernel::{println, hlt_loop};
+use butterscotch_kernel::{hlt_loop, println};
 
 #[no_mangle] // don't mangle the name of this function
 pub extern "C" fn _start() -> ! {
