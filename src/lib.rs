@@ -11,10 +11,16 @@ pub mod interrupt;
 pub mod io;
 pub mod kernel;
 pub use kernel::init;
+pub mod memory;
 
 #[cfg(test)]
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+use bootloader::entry_point;
+
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
+#[cfg(test)]
+pub fn test_kernel_main(boot_info: &'static BootInfo) -> ! {
     init();
     test_main();
     hlt_loop()
