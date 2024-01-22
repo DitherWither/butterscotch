@@ -7,7 +7,7 @@
 #![test_runner(test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
-extern crate alloc;
+// extern crate alloc;
 
 pub mod gdt;
 pub mod interrupt;
