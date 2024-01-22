@@ -9,7 +9,7 @@ extern crate alloc;
 use alloc::{boxed::Box, vec::Vec};
 use bootloader::{entry_point, BootInfo};
 use butterscotch_kernel::allocator::HEAP_SIZE;
-use core::{panic::PanicInfo, mem::size_of};
+use core::panic::PanicInfo;
 
 entry_point!(main);
 
