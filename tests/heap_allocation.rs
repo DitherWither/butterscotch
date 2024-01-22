@@ -9,7 +9,7 @@ extern crate alloc;
 use alloc::{boxed::Box, vec::Vec};
 use bootloader::{entry_point, BootInfo};
 use butterscotch_kernel::allocator::HEAP_SIZE;
-use core::panic::PanicInfo;
+use core::{panic::PanicInfo, mem::size_of};
 
 entry_point!(main);
 
@@ -29,7 +29,7 @@ fn simple_allocation() {
 
 #[test_case]
 fn large_vec() {
-    let n = 1000;
+    let n = 2048;
     let mut vec = Vec::new();
     for i in 0..n {
         vec.push(i);
