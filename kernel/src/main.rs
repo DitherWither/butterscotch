@@ -17,7 +17,6 @@ pub use kernel::init;
 pub mod allocator;
 pub mod memory;
 
-
 use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
 
 pub fn hlt_loop() -> ! {
@@ -26,31 +25,30 @@ pub fn hlt_loop() -> ! {
     }
 }
 
-
 #[no_mangle]
 unsafe extern "C" fn _start() -> ! {
     init();
 
     // allocate a number on the heap
     let heap_value = Box::new(41);
-    serial_println!("heap_value at {:p}", heap_value);
+    println!("heap_value at {:p}", heap_value);
 
     // create a dynamically sized vector
     let mut vec = Vec::new();
     for i in 0..500 {
         vec.push(i);
     }
-    serial_println!("vec at {:p}", vec.as_slice());
+    println!("vec at {:p}", vec.as_slice());
 
     // create a reference counted vector -> will be freed when count reaches 0
     let reference_counted = Rc::new(vec![1, 2, 3]);
     let cloned_reference = reference_counted.clone();
-    serial_println!(
+    println!(
         "current reference count is {}",
         Rc::strong_count(&cloned_reference)
     );
     core::mem::drop(reference_counted);
-    serial_println!(
+    println!(
         "reference count is {} now",
         Rc::strong_count(&cloned_reference)
     );
