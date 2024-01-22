@@ -1,8 +1,7 @@
-#![feature(const_mut_refs)]
 use talc::*;
 use x86_64::{
     structures::paging::{
-        mapper::MapToError, FrameAllocator, Mapper, Page, PageTableFlags, Size2MiB, Size4KiB,
+        mapper::MapToError, FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB,
     },
     VirtAddr,
 };
@@ -12,9 +11,10 @@ static ALLOCATOR: Talck<spin::Mutex<()>, ErrOnOom> = Talc::new(ErrOnOom).lock();
 
 // Start the heap at a this address to make it easier to recognize
 pub const HEAP_START: usize = 0x_4444_4444_0000;
-// Increase this later once we need more than 116MiB
-pub const HEAP_SIZE: usize =  1024 * 1024; // 16MiB
+// Increase this later once we need more than 8MiB
+pub const HEAP_SIZE: usize = 8 * 1024 * 1024; // 8MiB
 
+// TODO: Use 2MiB pages instead for better performance
 pub fn init(
     mapper: &mut impl Mapper<Size4KiB>,
     frame_allocator: &mut impl FrameAllocator<Size4KiB>,
