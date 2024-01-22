@@ -1,18 +1,19 @@
-use linked_list_allocator::LockedHeap;
+#![feature(const_mut_refs)]
+use talc::*;
 use x86_64::{
     structures::paging::{
-        mapper::MapToError, FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB,
+        mapper::MapToError, FrameAllocator, Mapper, Page, PageTableFlags, Size2MiB, Size4KiB,
     },
     VirtAddr,
 };
 
 #[global_allocator]
-static ALLOCATOR: LockedHeap = LockedHeap::empty();
+static ALLOCATOR: Talck<spin::Mutex<()>, ErrOnOom> = Talc::new(ErrOnOom).lock();
 
 // Start the heap at a this address to make it easier to recognize
 pub const HEAP_START: usize = 0x_4444_4444_0000;
-// Increase this later once we need more than 1MiB
-pub const HEAP_SIZE: usize = 1024 * 1024; // 1MiB
+// Increase this later once we need more than 116MiB
+pub const HEAP_SIZE: usize =  1024 * 1024; // 16MiB
 
 pub fn init(
     mapper: &mut impl Mapper<Size4KiB>,
@@ -32,7 +33,10 @@ pub fn init(
         unsafe { mapper.map_to(page, frame, flags, frame_allocator)?.flush() }
     }
     unsafe {
-        ALLOCATOR.lock().init(heap_start.as_mut_ptr(), HEAP_SIZE);
+        ALLOCATOR
+            .lock()
+            .claim(Span::from_base_size(heap_start.as_mut_ptr(), HEAP_SIZE))
+            .expect("Unable to claim heap");
     }
 
     Ok(())
