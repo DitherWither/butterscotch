@@ -62,12 +62,7 @@ impl FrameBufferWriter {
         let offset = self.framebuffer.pitch as usize * y + x * 4;
 
         unsafe {
-            *(self
-                .framebuffer
-                .address
-                .as_ptr()
-                .unwrap()
-                .add(offset) as *mut u32) = color;
+            *(self.framebuffer.address.as_ptr().unwrap().add(offset) as *mut u32) = color;
         }
     }
 
