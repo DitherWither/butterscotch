@@ -46,6 +46,7 @@ pub fn init() {
     console::clear_screen();
 
     serial_println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
+    serial_println!("Copyright 2024 Vardhan Patil");
     println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
-    println!("{}", 123);
+    println!("Copyright 2024 Vardhan Patil");
 }
