@@ -8,8 +8,6 @@ use noto_sans_mono_bitmap::RasterHeight;
 use noto_sans_mono_bitmap::RasterizedChar;
 use spin::Mutex;
 
-use crate::dbg;
-
 use self::font_constants::CHAR_RASTER_HEIGHT;
 use self::font_constants::CHAR_RASTER_WIDTH;
 
@@ -76,7 +74,7 @@ impl Console {
         self.y_pos = BORDER_PADDING;
         framebuffer::clear(DEFAULT_BACKGROUND_COLOR);
 
-        if self.rendered_chars == None {
+        if self.rendered_chars.is_none() {
             self.rendered_chars = Some(self.render_chars());
         }
     }
@@ -136,18 +134,14 @@ impl Console {
                     self.clear_screen(); // TODO implement scrolling
                 }
                 // Draw the character by copying bytes from the prerendered buffer
-                let fb = framebuffer::get_fb_raw();
-                if let Some(fb) = fb {
-                    if let Some(chars) = &self.rendered_chars {
-                        let char = &chars[c as usize];
-                        let buf = fb.address.as_ptr().unwrap();
-                        for (i, line) in char.iter().enumerate() {
-                            for (j, pixel) in line.iter().enumerate() {
-                                framebuffer::set_pixel(self.x_pos + j, self.y_pos + i, *pixel)
-                            }
+                if let Some(chars) = &self.rendered_chars {
+                    let char = &chars[c as usize];
+                    for (i, line) in char.iter().enumerate() {
+                        for (j, pixel) in line.iter().enumerate() {
+                            framebuffer::set_pixel(self.x_pos + j, self.y_pos + i, *pixel)
                         }
-                        self.x_pos += char[0].len() + LETTER_SPACING;
                     }
+                    self.x_pos += char[0].len() + LETTER_SPACING;
                 }
             }
         }
@@ -178,6 +172,6 @@ pub fn _print(args: fmt::Arguments) {
 
 #[doc(hidden)]
 pub fn _eprint(args: fmt::Arguments) {
-    // _print(args);
+    _print(args);
     crate::io::serial::_serial_print(args);
 }

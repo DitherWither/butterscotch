@@ -20,7 +20,6 @@ static MEMMAP_REQUEST: limine::MemmapRequest = limine::MemmapRequest::new(1);
 static HHDM_REQUEST: limine::HhdmRequest = limine::HhdmRequest::new(1);
 
 pub fn init() {
-    
     let memmap = unsafe {
         MEMMAP_REQUEST
             .get_response()
@@ -37,16 +36,16 @@ pub fn init() {
     let mut mapper = unsafe { memory::init(physical_memory_offset) };
     let mut frame_allocator = unsafe { memory::BootInfoFrameAllocator::new(memmap) };
     allocator::init(&mut mapper, &mut frame_allocator).expect("Heap initialization failed");
-    
+
     unsafe {
         gdt::init();
         interrupt::init();
     }
-    
+
     framebuffer::init(&FRAMEBUFFER_REQUEST);
     console::clear_screen();
-    
+
     serial_println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
-    println!("{}", 123);
     println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
+    println!("{}", 123);
 }
