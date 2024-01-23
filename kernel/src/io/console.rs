@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use core::fmt;
 use core::fmt::Write;
 use noto_sans_mono_bitmap::get_raster;
@@ -6,6 +7,11 @@ use noto_sans_mono_bitmap::FontWeight;
 use noto_sans_mono_bitmap::RasterHeight;
 use noto_sans_mono_bitmap::RasterizedChar;
 use spin::Mutex;
+
+use crate::dbg;
+
+use self::font_constants::CHAR_RASTER_HEIGHT;
+use self::font_constants::CHAR_RASTER_WIDTH;
 
 use super::framebuffer;
 use super::framebuffer::color;
@@ -27,21 +33,25 @@ mod font_constants {
 
 /// Gets the raster of the character, or backup character
 fn get_char_raster(c: char) -> RasterizedChar {
-    fn get(c: char) -> Option<RasterizedChar> {
+    get_raster(
+        c,
+        font_constants::FONT_WEIGHT,
+        font_constants::CHAR_RASTER_HEIGHT,
+    )
+    .unwrap_or_else(|| {
         get_raster(
-            c,
+            font_constants::BACKUP_CHAR,
             font_constants::FONT_WEIGHT,
             font_constants::CHAR_RASTER_HEIGHT,
         )
-    }
-    get(c).unwrap_or_else(|| {
-        get(font_constants::BACKUP_CHAR).expect("Should get raster of backup char.")
+        .expect("Should get raster of backup char.")
     })
 }
 
 pub static CONSOLE: Mutex<Console> = Mutex::new(Console::new());
 
 pub struct Console {
+    rendered_chars: Option<Vec<Vec<Vec<u32>>>>,
     x_pos: usize,
     y_pos: usize,
     text_color_r: u8,
@@ -52,6 +62,7 @@ pub struct Console {
 impl Console {
     pub const fn new() -> Self {
         Self {
+            rendered_chars: None,
             x_pos: BORDER_PADDING,
             y_pos: BORDER_PADDING,
             text_color_r: 255,
@@ -64,6 +75,38 @@ impl Console {
         self.x_pos = BORDER_PADDING;
         self.y_pos = BORDER_PADDING;
         framebuffer::clear(DEFAULT_BACKGROUND_COLOR);
+
+        if self.rendered_chars == None {
+            self.rendered_chars = Some(self.render_chars());
+        }
+    }
+
+    pub fn render_chars(&mut self) -> Vec<Vec<Vec<u32>>> {
+        let mut rendered_chars = Vec::with_capacity(u8::MAX as usize);
+        for i in 0..u8::MAX {
+            let character = get_char_raster(i.into());
+
+            let v: Vec<Vec<u32>> = (0..CHAR_RASTER_HEIGHT as usize)
+                .map(|i| {
+                    let r = character.raster()[i];
+                    (0..CHAR_RASTER_WIDTH)
+                        .map(|j| {
+                            let intensity = r[j];
+                            let intensity_norm = intensity as f32 / u8::MAX as f32;
+                            color::from_rgba(20, 20, 20, 1.0 - intensity_norm)
+                                + color::from_rgba(
+                                    self.text_color_r,
+                                    self.text_color_g,
+                                    self.text_color_b,
+                                    intensity_norm,
+                                )
+                        })
+                        .collect::<Vec<u32>>()
+                })
+                .collect();
+            rendered_chars.push(v)
+        }
+        rendered_chars
     }
 
     pub fn newline(&mut self) {
@@ -92,31 +135,22 @@ impl Console {
                 if new_ypos >= framebuffer::height() {
                     self.clear_screen(); // TODO implement scrolling
                 }
-                self.write_rendered_char(get_char_raster(c));
+                // Draw the character by copying bytes from the prerendered buffer
+                let fb = framebuffer::get_fb_raw();
+                if let Some(fb) = fb {
+                    if let Some(chars) = &self.rendered_chars {
+                        let char = &chars[c as usize];
+                        let buf = fb.address.as_ptr().unwrap();
+                        for (i, line) in char.iter().enumerate() {
+                            for (j, pixel) in line.iter().enumerate() {
+                                framebuffer::set_pixel(self.x_pos + j, self.y_pos + i, *pixel)
+                            }
+                        }
+                        self.x_pos += char[0].len() + LETTER_SPACING;
+                    }
+                }
             }
         }
-    }
-
-    fn write_rendered_char(&mut self, rendered_char: RasterizedChar) {
-        for (y, row) in rendered_char.raster().iter().enumerate() {
-            for (x, byte) in row.iter().enumerate() {
-                self.write_pixel(self.x_pos + x, self.y_pos + y, *byte);
-            }
-        }
-        self.x_pos += rendered_char.width() + LETTER_SPACING;
-    }
-
-    fn write_pixel(&self, x: usize, y: usize, intensity: u8) {
-        let intensity_norm = intensity as f32 / u8::MAX as f32;
-        let color = color::from_rgba(20, 20, 20, 1.0 - intensity_norm)
-            + color::from_rgba(
-                self.text_color_r,
-                self.text_color_g,
-                self.text_color_b,
-                intensity_norm,
-            );
-
-        framebuffer::set_pixel(x, y, color);
     }
 }
 
@@ -144,6 +178,6 @@ pub fn _print(args: fmt::Arguments) {
 
 #[doc(hidden)]
 pub fn _eprint(args: fmt::Arguments) {
-    _print(args);
+    // _print(args);
     crate::io::serial::_serial_print(args);
 }

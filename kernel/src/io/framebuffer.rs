@@ -41,6 +41,13 @@ pub fn height() -> usize {
         0
     }
 }
+pub fn get_fb_raw() -> Option<&'static NonNullPtr<Framebuffer>> {
+    if let Some(fb) = &mut *FRAMEBUFFER.lock() {
+        Some(fb.framebuffer)
+    } else {
+        None
+    }
+}
 
 pub struct FrameBufferWriter {
     framebuffer: &'static NonNullPtr<Framebuffer>,
