@@ -33,6 +33,7 @@ macro_rules! basic_handler {
 /// Should only be called on one thread, once
 /// Is called by main during startup
 pub unsafe fn init() {
+    // FIXME keyboard inturrupts are not working at all
     IDT.double_fault
         .set_handler_fn(double_fault_handler)
         .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
@@ -89,6 +90,7 @@ impl InterruptIndex {
 
 /// Handler for the PIT timer
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
+    println!(".");
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
