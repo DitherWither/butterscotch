@@ -1,52 +1,67 @@
 use limine::{Framebuffer, NonNullPtr};
 use spin::Mutex;
+use x86_64::instructions::interrupts::without_interrupts;
 
 pub static FRAMEBUFFER: Mutex<Option<FrameBufferWriter>> = Mutex::new(None);
 
 pub fn init(frame_buffer_request: &limine::FramebufferRequest) {
-    let mut fb = FRAMEBUFFER.lock();
-    *fb = Some(FrameBufferWriter::new(frame_buffer_request))
+    without_interrupts(|| {
+        let mut fb = FRAMEBUFFER.lock();
+        *fb = Some(FrameBufferWriter::new(frame_buffer_request))
+    })
 }
 
 pub fn set_pixel(x: usize, y: usize, color: u32) {
-    if let Some(fb) = &mut *FRAMEBUFFER.lock() {
-        fb.set_pixel(x, y, color);
-    }
+    without_interrupts(|| {
+        if let Some(fb) = &mut *FRAMEBUFFER.lock() {
+            fb.set_pixel(x, y, color);
+        }
+    });
 }
 
 pub fn fill_rect(x: usize, y: usize, width: usize, height: usize, color: u32) {
-    if let Some(fb) = &mut *FRAMEBUFFER.lock() {
-        fb.fill_rect(x, y, width, height, color);
-    }
+    without_interrupts(|| {
+        if let Some(fb) = &mut *FRAMEBUFFER.lock() {
+            fb.fill_rect(x, y, width, height, color);
+        }
+    });
 }
 
 pub fn clear(color: u32) {
-    if let Some(fb) = &mut *FRAMEBUFFER.lock() {
-        fb.clear(color);
-    }
+    without_interrupts(|| {
+        if let Some(fb) = &mut *FRAMEBUFFER.lock() {
+            fb.clear(color);
+        }
+    });
 }
 
 pub fn width() -> usize {
-    if let Some(fb) = &mut *FRAMEBUFFER.lock() {
-        fb.framebuffer.width as usize
-    } else {
-        0
-    }
+    let mut res = 0;
+    without_interrupts(|| {
+        if let Some(fb) = &mut *FRAMEBUFFER.lock() {
+            res = fb.framebuffer.width as usize;
+        }
+    });
+    res
 }
 
 pub fn height() -> usize {
-    if let Some(fb) = &mut *FRAMEBUFFER.lock() {
-        fb.framebuffer.height as usize
-    } else {
-        0
-    }
+    let mut res = 0;
+    without_interrupts(|| {
+        if let Some(fb) = &mut *FRAMEBUFFER.lock() {
+            res = fb.framebuffer.height as usize;
+        }
+    });
+    res
 }
 pub fn get_fb_raw() -> Option<&'static NonNullPtr<Framebuffer>> {
-    if let Some(fb) = &mut *FRAMEBUFFER.lock() {
-        Some(fb.framebuffer)
-    } else {
-        None
-    }
+    let mut res = None;
+    without_interrupts(|| {
+        if let Some(fb) = &mut *FRAMEBUFFER.lock() {
+            res = Some(fb.framebuffer);
+        }
+    });
+    res
 }
 
 pub struct FrameBufferWriter {
