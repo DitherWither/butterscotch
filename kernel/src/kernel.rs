@@ -1,4 +1,4 @@
-use x86_64::VirtAddr;
+use x86_64::{instructions::interrupts::int3, VirtAddr};
 
 use crate::{
     io::{
@@ -20,13 +20,17 @@ static MEMMAP_REQUEST: limine::MemmapRequest = limine::MemmapRequest::new(1);
 static HHDM_REQUEST: limine::HhdmRequest = limine::HhdmRequest::new(1);
 
 pub fn init() {
+    unsafe {
+        gdt::init();
+        interrupt::init();
+    }
     let memmap = unsafe {
         MEMMAP_REQUEST
-            .get_response()
-            .as_ptr()
-            .expect("Unable to get memory map")
-            .as_mut()
-            .unwrap()
+        .get_response()
+        .as_ptr()
+        .expect("Unable to get memory map")
+        .as_mut()
+        .unwrap()
     }
     .memmap_mut();
 
@@ -36,11 +40,6 @@ pub fn init() {
     let mut mapper = unsafe { memory::init(physical_memory_offset) };
     let mut frame_allocator = unsafe { memory::BootInfoFrameAllocator::new(memmap) };
     allocator::init(&mut mapper, &mut frame_allocator).expect("Heap initialization failed");
-
-    unsafe {
-        gdt::init();
-        interrupt::init();
-    }
 
     framebuffer::init(&FRAMEBUFFER_REQUEST);
     console::clear_screen();

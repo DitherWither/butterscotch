@@ -26,11 +26,14 @@ pub unsafe fn init() {
         stack_start + STACK_SIZE // stack end
     };
 
-    let code_selector = GDT.add_entry(Descriptor::kernel_code_segment());
+    // kernel code/data
+    let kernel_code_selector = GDT.add_entry(Descriptor::kernel_code_segment());
+    GDT.add_entry(Descriptor::kernel_data_segment());
+
     #[allow(static_mut_ref)]
     let tss_selector = GDT.add_entry(Descriptor::tss_segment(&TSS));
 
     GDT.load();
-    CS::set_reg(code_selector);
+    CS::set_reg(kernel_code_selector);
     load_tss(tss_selector);
 }

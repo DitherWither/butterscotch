@@ -27,9 +27,8 @@ pub fn _serial_print(args: ::core::fmt::Arguments) {
             serial.port.init();
         }
         use core::fmt::Write;
-        serial
+        let _ = serial
             .port
-            .write_fmt(args)
-            .expect("Printing to serial failed");
+            .write_fmt(args);
     })
 }

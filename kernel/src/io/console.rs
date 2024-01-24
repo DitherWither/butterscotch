@@ -7,6 +7,7 @@ use noto_sans_mono_bitmap::FontWeight;
 use noto_sans_mono_bitmap::RasterHeight;
 use noto_sans_mono_bitmap::RasterizedChar;
 use spin::Mutex;
+use x86_64::instructions::interrupts::without_interrupts;
 
 use self::font_constants::CHAR_RASTER_HEIGHT;
 use self::font_constants::CHAR_RASTER_WIDTH;
@@ -161,13 +162,17 @@ impl fmt::Write for Console {
 }
 
 pub fn clear_screen() {
-    CONSOLE.lock().clear_screen();
+    without_interrupts(|| {
+        CONSOLE.lock().clear_screen();
+    });
 }
 
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
-    let mut con = CONSOLE.lock();
-    let _ = con.write_fmt(args);
+    without_interrupts(|| {
+        let mut con = CONSOLE.lock();
+        let _ = con.write_fmt(args);
+    });
 }
 
 #[doc(hidden)]
