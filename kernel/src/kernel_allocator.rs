@@ -1,14 +1,13 @@
 use spin::Mutex;
 use talc::*;
 use x86_64::{
-    instructions::interrupts::without_interrupts,
     structures::paging::{
-        mapper::MapToError, FrameAllocator, Mapper, Page, PageTableFlags, Size4KiB,
+        mapper::MapToError, PageTableFlags, Size4KiB,
     },
     VirtAddr,
 };
 
-use crate::{memory};
+use crate::memory;
 
 #[global_allocator]
 static ALLOCATOR: Talck<spin::Mutex<()>, ErrOnOom> = Talc::new(ErrOnOom).lock();

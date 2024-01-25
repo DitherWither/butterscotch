@@ -1,7 +1,9 @@
+use crate::io::console;
 use crate::*;
-use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
+use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
 use spin::{self, Mutex};
+use x86_64::set_general_handler;
 use x86_64::structures::idt::PageFaultErrorCode;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
@@ -44,12 +46,26 @@ pub unsafe fn init() {
     basic_handler!(IDT.breakpoint, "Breakpoint");
     IDT.page_fault.set_handler_fn(page_fault_handler);
     // TODO add handlers for other functions
-
     IDT.load();
 
+    let mut mask = PICS.lock().read_masks();
+    serial_dbg!(mask);
+    mask[0] &= & !(1 << 0);
+    mask[0] &= & !(1 << 1);
+    // mask[0] &= & !(1 << 2);
+    serial_dbg!(mask[0]);
+    PICS.lock().write_masks(mask[0], mask[1]);
     PICS.lock().initialize();
     x86_64::instructions::interrupts::enable();
 }
+
+fn general_handler(
+    stack_frame: InterruptStackFrame,
+    index: u8,
+    error_code: Option<u64>,
+ ) {
+     todo!("handle irq {}", index)
+ }
 
 extern "x86-interrupt" fn page_fault_handler(
     stack_frame: InterruptStackFrame,
@@ -90,7 +106,7 @@ impl InterruptIndex {
 
 /// Handler for the PIT timer
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    println!(".");
+    // print!(".");
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
@@ -109,7 +125,10 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
     if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(key_event) {
             match key {
-                DecodedKey::Unicode(character) => serial_print!("{}", character),
+                DecodedKey::Unicode(character) => print!("{}", character),
+                DecodedKey::RawKey(KeyCode::LControl) => {
+                    console::clear_screen();
+                },
                 DecodedKey::RawKey(_) => (),
             }
         }

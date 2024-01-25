@@ -17,8 +17,6 @@ pub use kernel::init;
 pub mod kernel_allocator;
 pub mod memory;
 
-use alloc::{boxed::Box, rc::Rc, vec, vec::Vec};
-
 pub fn hlt_loop() -> ! {
     loop {
         x86_64::instructions::hlt();

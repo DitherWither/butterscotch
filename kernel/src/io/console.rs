@@ -121,30 +121,45 @@ impl Console {
         if framebuffer::width() == 0 || framebuffer::height() == 0 {
             return;
         }
-        match c {
-            '\n' => self.newline(),
-            '\r' => self.carriage_return(),
+        match c as u8 {
+            b'\n' => self.newline(),
+            b'\r' => self.carriage_return(),
+            8 => {
+                let w = if let Some(chars) = &self.rendered_chars {
+                    chars[b'a' as usize][0].len() + LETTER_SPACING
+                } else {
+                    0
+                };
+                if self.x_pos <= BORDER_PADDING {
+                    return;
+                }
+                self.x_pos -= w;
+                self.write_char(' ');
+                self.x_pos -= w;
+            }
             c => {
-                let new_xpos = self.x_pos + font_constants::CHAR_RASTER_WIDTH;
-                if new_xpos >= framebuffer::width() {
-                    self.newline();
-                }
-                let new_ypos =
-                    self.y_pos + font_constants::CHAR_RASTER_HEIGHT.val() + BORDER_PADDING;
-                if new_ypos >= framebuffer::height() {
-                    self.clear_screen(); // TODO implement scrolling
-                }
-                // Draw the character by copying bytes from the prerendered buffer
-                if let Some(chars) = &self.rendered_chars {
-                    let char = &chars[c as usize];
-                    for (i, line) in char.iter().enumerate() {
-                        for (j, pixel) in line.iter().enumerate() {
-                            framebuffer::set_pixel(self.x_pos + j, self.y_pos + i, *pixel)
-                        }
-                    }
-                    self.x_pos += char[0].len() + LETTER_SPACING;
+                self.draw(c.into());
+            }
+        }
+    }
+    pub fn draw(&mut self, c: char) {
+        let new_xpos = self.x_pos + font_constants::CHAR_RASTER_WIDTH;
+        if new_xpos >= framebuffer::width() {
+            self.newline();
+        }
+        let new_ypos = self.y_pos + font_constants::CHAR_RASTER_HEIGHT.val() + BORDER_PADDING;
+        if new_ypos >= framebuffer::height() {
+            self.clear_screen(); // TODO implement scrolling
+        }
+        // Draw the character by copying bytes from the prerendered buffer
+        if let Some(chars) = &self.rendered_chars {
+            let char = &chars[c as usize];
+            for (i, line) in char.iter().enumerate() {
+                for (j, pixel) in line.iter().enumerate() {
+                    framebuffer::set_pixel(self.x_pos + j, self.y_pos + i, *pixel)
                 }
             }
+            self.x_pos += char[0].len() + LETTER_SPACING;
         }
     }
 }

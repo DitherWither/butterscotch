@@ -1,3 +1,5 @@
+use x86_64::instructions::interrupts::int3;
+
 use crate::{
     io::{
         console::{self},
@@ -26,6 +28,8 @@ pub fn init() {
     kernel_allocator::init().expect("Heap initialization failed");
     framebuffer::init(&FRAMEBUFFER_REQUEST);
     console::clear_screen();
+
+    // int3();
 
     serial_println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
     serial_println!("Copyright 2024 Vardhan Patil");
