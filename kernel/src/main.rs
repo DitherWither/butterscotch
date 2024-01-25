@@ -13,6 +13,8 @@ pub mod interrupt;
 pub mod io;
 pub mod kernel;
 pub use kernel::init;
+
+use crate::interrupt::sleep;
 pub mod kernel_allocator;
 pub mod memory;
 
@@ -25,6 +27,11 @@ pub fn hlt_loop() -> ! {
 #[no_mangle]
 unsafe extern "C" fn _start() -> ! {
     init();
+
+    for i in 1..10 {
+        sleep(1000);
+        console_println!("{i}");
+    }
 
     eprintln!("Kernel did not crash");
 

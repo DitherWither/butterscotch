@@ -1,7 +1,6 @@
 pub mod console;
 pub mod framebuffer;
 pub mod serial;
-pub mod stdin;
 
 #[macro_export]
 macro_rules! console_print {

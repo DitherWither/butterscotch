@@ -1,5 +1,3 @@
-use x86_64::instructions::interrupts::int3;
-
 use crate::{
     io::{
         console::{self},
