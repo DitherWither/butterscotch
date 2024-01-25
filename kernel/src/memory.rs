@@ -9,6 +9,7 @@ use x86_64::{
     PhysAddr, VirtAddr,
 };
 
+use crate::limine_requests::{HHDM_REQUEST, MEMMAP_REQUEST};
 
 pub static PAGE_ALLOCATOR: Mutex<Option<PageAllocator>> = Mutex::new(None);
 
@@ -18,13 +19,13 @@ pub static PAGE_ALLOCATOR: Mutex<Option<PageAllocator>> = Mutex::new(None);
 ///
 /// Caller must ensure that the limine requests are valid,
 /// and come from the bootloader
-pub unsafe fn init(memmap_request: &limine::MemmapRequest, hhdm_request: &limine::HhdmRequest) {
+pub unsafe fn init() {
     let mut page_allocator = PAGE_ALLOCATOR.lock();
     if !page_allocator.is_none() {
         return;
     }
 
-    *page_allocator = Some(PageAllocator::init(memmap_request, hhdm_request));
+    *page_allocator = Some(PageAllocator::init(&MEMMAP_REQUEST, &HHDM_REQUEST));
 }
 
 pub struct PageAllocator<'a> {

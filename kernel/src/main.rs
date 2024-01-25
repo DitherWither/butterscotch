@@ -9,14 +9,24 @@
 
 extern crate alloc;
 
+pub mod constants;
 pub mod interrupt;
 pub mod io;
 pub mod kernel;
+pub mod kernel_allocator;
+pub mod limine_requests;
+pub mod memory;
+
 pub use kernel::init;
 
-use crate::interrupt::sleep;
-pub mod kernel_allocator;
-pub mod memory;
+#[no_mangle]
+unsafe extern "C" fn _start() -> ! {
+    init();
+    
+    eprintln!("Kernel did not crash");
+
+    hlt_loop()
+}
 
 pub fn hlt_loop() -> ! {
     loop {
@@ -24,19 +34,6 @@ pub fn hlt_loop() -> ! {
     }
 }
 
-#[no_mangle]
-unsafe extern "C" fn _start() -> ! {
-    init();
-
-    for i in 1..10 {
-        sleep(1000);
-        console_println!("{i}");
-    }
-
-    eprintln!("Kernel did not crash");
-
-    hlt_loop()
-}
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {

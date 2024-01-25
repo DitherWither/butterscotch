@@ -1,8 +1,6 @@
-use core::sync::atomic::{AtomicU64, Ordering};
-use core::time;
-
 use crate::io::console;
 use crate::*;
+use core::sync::atomic::{AtomicU64, Ordering};
 use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
 use spin::{self, Mutex};
@@ -116,6 +114,10 @@ extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFr
     }
 }
 
+/// Wait for the amount of time in `time_millis`, and then return
+/// 
+/// Interrupts must be enabled, and initialized for this to work.
+/// They should be initialized in kernel::init
 pub fn sleep(time_millis: u64) {
     TIMER.store(time_millis, Ordering::Relaxed);
 
@@ -126,7 +128,6 @@ pub fn sleep(time_millis: u64) {
 
 /// Handler for the Keyboard events
 extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
-
     let mut port = Port::new(0x60);
     let mut keyboard = KEYBOARD.lock();
 

@@ -2,15 +2,24 @@ use limine::{Framebuffer, NonNullPtr};
 use spin::Mutex;
 use x86_64::instructions::interrupts::without_interrupts;
 
+use crate::limine_requests::FRAMEBUFFER_REQUEST;
+
 pub static FRAMEBUFFER: Mutex<Option<FrameBufferWriter>> = Mutex::new(None);
 
-pub fn init(frame_buffer_request: &limine::FramebufferRequest) {
+/// Initialize the VGA framebuffer related structures
+/// 
+/// Must be called before any other framebuffer related structs are called,
+/// otherwise the requests will be ignored
+/// 
+/// Called in kernel::init by default
+pub fn init() {
     without_interrupts(|| {
         let mut fb = FRAMEBUFFER.lock();
-        *fb = Some(FrameBufferWriter::new(frame_buffer_request))
+        *fb = Some(FrameBufferWriter::new(&FRAMEBUFFER_REQUEST))
     })
 }
 
+/// Set a single pixel with given color
 pub fn set_pixel(x: usize, y: usize, color: u32) {
     without_interrupts(|| {
         if let Some(fb) = &mut *FRAMEBUFFER.lock() {
@@ -19,6 +28,7 @@ pub fn set_pixel(x: usize, y: usize, color: u32) {
     });
 }
 
+/// Render a rectangle with given color
 pub fn fill_rect(x: usize, y: usize, width: usize, height: usize, color: u32) {
     without_interrupts(|| {
         if let Some(fb) = &mut *FRAMEBUFFER.lock() {
@@ -27,6 +37,7 @@ pub fn fill_rect(x: usize, y: usize, width: usize, height: usize, color: u32) {
     });
 }
 
+/// Clear the framebuffer with background color
 pub fn clear(color: u32) {
     without_interrupts(|| {
         if let Some(fb) = &mut *FRAMEBUFFER.lock() {
@@ -35,6 +46,7 @@ pub fn clear(color: u32) {
     });
 }
 
+/// Get width of the framebuffer
 pub fn width() -> usize {
     let mut res = 0;
     without_interrupts(|| {
@@ -45,6 +57,7 @@ pub fn width() -> usize {
     res
 }
 
+/// Get height of the framebuffer
 pub fn height() -> usize {
     let mut res = 0;
     without_interrupts(|| {
@@ -54,6 +67,8 @@ pub fn height() -> usize {
     });
     res
 }
+
+/// Get the framebuffer directly
 pub fn get_fb_raw() -> Option<&'static NonNullPtr<Framebuffer>> {
     let mut res = None;
     without_interrupts(|| {
@@ -64,6 +79,7 @@ pub fn get_fb_raw() -> Option<&'static NonNullPtr<Framebuffer>> {
     res
 }
 
+/// Internal struct used to store the state of the framebuffer
 pub struct FrameBufferWriter {
     framebuffer: &'static NonNullPtr<Framebuffer>,
 }
