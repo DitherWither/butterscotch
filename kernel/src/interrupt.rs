@@ -3,7 +3,6 @@ use crate::*;
 use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
 use spin::{self, Mutex};
-use x86_64::set_general_handler;
 use x86_64::structures::idt::PageFaultErrorCode;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
@@ -37,8 +36,7 @@ macro_rules! basic_handler {
 pub unsafe fn init() {
     // FIXME keyboard inturrupts are not working at all
     IDT.double_fault
-        .set_handler_fn(double_fault_handler)
-        .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
+        .set_handler_fn(double_fault_handler);
 
     IDT[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
     IDT[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);

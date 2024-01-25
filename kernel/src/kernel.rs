@@ -21,15 +21,12 @@ static HHDM_REQUEST: limine::HhdmRequest = limine::HhdmRequest::new(1);
 
 pub fn init() {
     unsafe {
-        gdt::init();
         interrupt::init();
         memory::init(&MEMMAP_REQUEST, &HHDM_REQUEST);
     }
     kernel_allocator::init().expect("Heap initialization failed");
     framebuffer::init(&FRAMEBUFFER_REQUEST);
     console::clear_screen();
-
-    // int3();
 
     serial_println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
     serial_println!("Copyright 2024 Vardhan Patil");
