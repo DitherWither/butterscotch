@@ -1,5 +1,3 @@
-use x86_64::{instructions::interrupts::int3, VirtAddr};
-
 use crate::{
     io::{
         console::{self},
@@ -23,24 +21,9 @@ pub fn init() {
     unsafe {
         gdt::init();
         interrupt::init();
+        memory::init(&MEMMAP_REQUEST, &HHDM_REQUEST);
     }
-    let memmap = unsafe {
-        MEMMAP_REQUEST
-        .get_response()
-        .as_ptr()
-        .expect("Unable to get memory map")
-        .as_mut()
-        .unwrap()
-    }
-    .memmap_mut();
-
-    // Initialize allocation
-    let physical_memory_offset = HHDM_REQUEST.get_response().get().unwrap().offset;
-    let physical_memory_offset = VirtAddr::new(physical_memory_offset);
-    let mut mapper = unsafe { memory::init(physical_memory_offset) };
-    let mut frame_allocator = unsafe { memory::BootInfoFrameAllocator::new(memmap) };
-    allocator::init(&mut mapper, &mut frame_allocator).expect("Heap initialization failed");
-
+    kernel_allocator::init().expect("Heap initialization failed");
     framebuffer::init(&FRAMEBUFFER_REQUEST);
     console::clear_screen();
 
