@@ -10,7 +10,7 @@ const BASE_REVISION: u32 = 1;
 #[global_allocator]
 static ALLOCATOR: Talc<(), ErrOnOom> = Talc::new(ErrOnOom);
 
-static HEAP_SIZE: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+static HEAP_SIZE: Mutex<u64> = Mutex::new(0);
 
 pub static FRAMEBUFFER_REQUEST: limine::FramebufferRequest = limine::FramebufferRequest::new(0);
 static MEMMAP_REQUEST: limine::MemmapRequest = limine::MemmapRequest::new(1);
