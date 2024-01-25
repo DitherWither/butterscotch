@@ -1,8 +1,13 @@
+use core::sync::atomic::{AtomicU64, Ordering};
+use core::time;
+
 use crate::io::console;
 use crate::*;
 use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
 use spin::{self, Mutex};
+use x86_64::instructions::hlt;
+use x86_64::instructions::port::Port;
 use x86_64::structures::idt::PageFaultErrorCode;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
@@ -20,6 +25,8 @@ static KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> = Mutex::new(K
     HandleControl::Ignore,
 ));
 
+static TIMER: AtomicU64 = AtomicU64::new(0);
+
 macro_rules! basic_handler {
     ($e:expr, $t:literal) => {{
         extern "x86-interrupt" fn handler(stack_frame: InterruptStackFrame) {
@@ -35,8 +42,7 @@ macro_rules! basic_handler {
 /// Is called by main during startup
 pub unsafe fn init() {
     // FIXME keyboard inturrupts are not working at all
-    IDT.double_fault
-        .set_handler_fn(double_fault_handler);
+    IDT.double_fault.set_handler_fn(double_fault_handler);
 
     IDT[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
     IDT[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
@@ -46,24 +52,20 @@ pub unsafe fn init() {
     // TODO add handlers for other functions
     IDT.load();
 
+    let mut pic_port: Port<u8> = Port::new(0x40);
+    let rate = 1200u16; // 1ms
+    unsafe {
+        pic_port.write((rate & 0xFF) as u8);
+        pic_port.write(((rate & 0xFF00) >> 8) as u8);
+    }
+
     let mut mask = PICS.lock().read_masks();
-    serial_dbg!(mask);
-    mask[0] &= & !(1 << 0);
-    mask[0] &= & !(1 << 1);
-    // mask[0] &= & !(1 << 2);
-    serial_dbg!(mask[0]);
+    mask[0] &= &!(1 << 0);
+    mask[0] &= &!(1 << 1);
     PICS.lock().write_masks(mask[0], mask[1]);
     PICS.lock().initialize();
     x86_64::instructions::interrupts::enable();
 }
-
-fn general_handler(
-    stack_frame: InterruptStackFrame,
-    index: u8,
-    error_code: Option<u64>,
- ) {
-     todo!("handle irq {}", index)
- }
 
 extern "x86-interrupt" fn page_fault_handler(
     stack_frame: InterruptStackFrame,
@@ -104,16 +106,26 @@ impl InterruptIndex {
 
 /// Handler for the PIT timer
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    // print!(".");
+    // TODO add a proper timer
+    if TIMER.load(Ordering::Relaxed) > 0 {
+        TIMER.fetch_sub(1, Ordering::Relaxed);
+    }
     unsafe {
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Timer.as_u8());
     }
 }
 
+pub fn sleep(time_millis: u64) {
+    TIMER.store(time_millis, Ordering::Relaxed);
+
+    while TIMER.load(Ordering::Relaxed) > 0 {
+        hlt()
+    }
+}
+
 /// Handler for the Keyboard events
 extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    use x86_64::instructions::port::Port;
 
     let mut port = Port::new(0x60);
     let mut keyboard = KEYBOARD.lock();
@@ -125,7 +137,7 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
             match key {
                 DecodedKey::RawKey(KeyCode::LControl) => {
                     console::clear_screen();
-                },
+                }
                 DecodedKey::RawKey(_) => (),
                 DecodedKey::Unicode(_) => (),
             }
