@@ -9,7 +9,6 @@
 
 extern crate alloc;
 
-pub mod gdt;
 pub mod interrupt;
 pub mod io;
 pub mod kernel;
