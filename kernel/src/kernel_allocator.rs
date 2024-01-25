@@ -10,14 +10,14 @@ use x86_64::{
 use crate::memory;
 
 #[global_allocator]
-static ALLOCATOR: Talck<spin::Mutex<()>, ErrOnOom> = Talc::new(ErrOnOom).lock();
+static ALLOCATOR: Talc<spin::Mutex<()>, ErrOnOom> = Talc::new(ErrOnOom).lock();
 static HEAP_SIZE: Mutex<u64> = Mutex::new(0);
 
-// Start the heap at a this address to make it easier to recognize
-pub const HEAP_START: usize = 0x_C444_4444_0000;
-pub const HEAP_DEFAULT_SIZE: usize = 8 * 1024 * 1024; // 8KiB
+// Constants
+const HEAP_START: usize = 0xC444_4444_0000;
+const HEAP_DEFAULT_SIZE: usize = 8 * 1024 * 1024; // 8 MiB
 
-// TODO: Use 2MiB pages instead for better performance
+// TODO: Use 2 MiB pages instead for better performance
 pub fn init() -> Result<(), MapToError<Size4KiB>> {
     let heap_start = VirtAddr::new(HEAP_START as u64);
     let heap_end = heap_start + HEAP_DEFAULT_SIZE - 1u64;
@@ -34,7 +34,10 @@ pub fn init() -> Result<(), MapToError<Size4KiB>> {
                 heap_start.as_mut_ptr(),
                 HEAP_DEFAULT_SIZE,
             ))
-            .expect("Unable to claim heap");
+            .map_err(|err| {
+                eprintln!("Unable to claim heap: {:?}", err);
+                err
+            })?;
     }
 
     *HEAP_SIZE.lock() = HEAP_DEFAULT_SIZE as u64;
