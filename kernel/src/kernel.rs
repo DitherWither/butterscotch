@@ -30,6 +30,6 @@ pub fn init() {
 
     serial_println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
     serial_println!("Copyright 2024 Saumya Patil");
-    println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
-    println!("Copyright 2024 Saumya Patil");
+    console_println!(" :: Butterscotch OS 0.1.0 Alpha :: ");
+    console_println!("Copyright 2024 Saumya Patil");
 }
