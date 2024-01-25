@@ -9,6 +9,8 @@ use noto_sans_mono_bitmap::RasterizedChar;
 use spin::Mutex;
 use x86_64::instructions::interrupts::without_interrupts;
 
+use crate::serial_dbg;
+
 use self::font_constants::CHAR_RASTER_HEIGHT;
 use self::font_constants::CHAR_RASTER_WIDTH;
 
@@ -105,6 +107,7 @@ impl Console {
                 .collect();
             rendered_chars.push(v)
         }
+        serial_dbg!();
         rendered_chars
     }
 
