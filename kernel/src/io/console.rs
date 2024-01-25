@@ -21,7 +21,6 @@ const BORDER_PADDING: usize = 1;
 const DEFAULT_BACKGROUND_COLOR: u32 = color::from_rgb(20, 20, 20);
 
 mod font_constants {
-
     use super::*;
 
     pub const CHAR_RASTER_HEIGHT: RasterHeight = RasterHeight::Size16;
@@ -49,6 +48,7 @@ fn get_char_raster(c: char) -> RasterizedChar {
 
 pub static CONSOLE: Mutex<Console> = Mutex::new(Console::new());
 
+/// A VGA Framebuffer based console
 pub struct Console {
     rendered_chars: Option<Vec<Vec<Vec<u32>>>>,
     x_pos: usize,
@@ -176,6 +176,7 @@ impl fmt::Write for Console {
     }
 }
 
+/// Clear the screen, and run initialization code if needed
 pub fn clear_screen() {
     without_interrupts(|| {
         CONSOLE.lock().clear_screen();
