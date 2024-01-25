@@ -1,16 +1,17 @@
 pub mod console;
 pub mod framebuffer;
 pub mod serial;
+pub mod stdin;
 
 #[macro_export]
-macro_rules! print {
+macro_rules! console_print {
     ($($arg:tt)*) => ($crate::io::console::_print(format_args!($($arg)*)));
 }
 
 #[macro_export]
-macro_rules! println {
-    () => ($crate::print!("\n"));
-    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+macro_rules! console_println {
+    () => ($crate::console_print!("\n"));
+    ($($arg:tt)*) => ($crate::console_print!("{}\n", format_args!($($arg)*)));
 }
 
 #[macro_export]
@@ -37,7 +38,7 @@ macro_rules! eprintln {
 
 // Copied from std
 #[macro_export]
-macro_rules! dbg {
+macro_rules! console_dbg {
     // NOTE: We cannot use `concat!` to make a static string as a format argument
     // of `eprintln!` because `file!` could contain a `{` or
     // `$val` expression could be a block (`{ .. }`), in which case the `eprintln!`
