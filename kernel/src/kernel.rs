@@ -8,9 +8,9 @@ const BASE_REVISION: u32 = 1;
 
 // Use the correct spelling for the allocator
 #[global_allocator]
-static ALLOCATOR: Talc<(), ErrOnOom> = Talc::new(ErrOnOom);
+static ALLOCATOR: Talck<(), ErrOnOom> = Talck::new(ErrOnOom);
 
-static HEAP_SIZE: Mutex<u64> = Mutex::new(0);
+static HEAP_SIZE: u64 = 0;
 
 pub static FRAMEBUFFER_REQUEST: limine::FramebufferRequest = limine::FramebufferRequest::new(0);
 static MEMMAP_REQUEST: limine::MemmapRequest = limine::MemmapRequest::new(1);
