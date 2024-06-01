@@ -23,6 +23,10 @@ pub use kernel::init;
 unsafe extern "C" fn _start() -> ! {
     init();
     
+    let line = io::stdin::read_line();
+
+    eprintln!("line: {line}");
+
     eprintln!("Kernel did not crash");
 
     hlt_loop()
