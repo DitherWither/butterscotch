@@ -16,18 +16,16 @@ pub mod kernel;
 pub mod kernel_allocator;
 pub mod limine_requests;
 pub mod memory;
+pub mod shell;
 
 pub use kernel::init;
+use shell::run_shell;
 
 #[no_mangle]
 unsafe extern "C" fn _start() -> ! {
     init();
-    
-    let line = io::stdin::read_line();
 
-    eprintln!("line: {line}");
-
-    eprintln!("Kernel did not crash");
+    run_shell();
 
     hlt_loop()
 }
@@ -37,7 +35,6 @@ pub fn hlt_loop() -> ! {
         x86_64::instructions::hlt();
     }
 }
-
 
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
