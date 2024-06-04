@@ -1,8 +1,10 @@
+use alloc::string::String;
 use core::fmt::Debug;
 
 use crate::fs::Directory;
 use crate::*;
 use alloc::vec::Vec;
+use libk::io::stdin::stdin;
 use libk::io::stdout::STDOUT;
 use libk::io::{Read, Write};
 
@@ -23,7 +25,9 @@ pub fn run_shell() {
 
 fn shell_inner(prompt: &str, files: &mut (impl Directory + Debug)) -> Option<()> {
     eprint!("{prompt} ");
-    let line_raw = io::stdin::read_line();
+    let mut line_raw = String::new();
+    stdin().read_line(&mut line_raw).ok()?;
+
     let line: Vec<&str> = line_raw.split_whitespace().collect();
     let command = line[0];
 

@@ -1,8 +1,7 @@
-use crate::io::console;
 use crate::*;
 use core::sync::atomic::{AtomicU64, Ordering};
 use libk::Mutex;
-use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, Keyboard, ScancodeSet1};
+use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
 use x86_64::instructions::hlt;
 use x86_64::instructions::port::Port;
@@ -24,7 +23,6 @@ static KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> = Mutex::new(K
 ));
 
 static TIMER: AtomicU64 = AtomicU64::new(0);
-static CUR_CHAR: Mutex<Option<char>> = Mutex::new(None);
 
 macro_rules! basic_handler {
     ($e:expr, $t:literal) => {{
@@ -137,13 +135,10 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
     if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
         if let Some(key) = keyboard.process_keyevent(key_event) {
             match key {
-                DecodedKey::RawKey(KeyCode::LControl) => {
-                    console::clear_screen();
-                }
                 DecodedKey::RawKey(_) => (),
                 DecodedKey::Unicode(c) => {
                     // TODO Input might be dropped if it isn't consumed before the next keypress
-                    *CUR_CHAR.lock() = Some(c);
+                    *libk::io::stdin::CUR_CHAR.lock() = Some(c);
                 }
             }
         }
@@ -153,16 +148,4 @@ extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStac
         PICS.lock()
             .notify_end_of_interrupt(InterruptIndex::Keyboard.as_u8());
     }
-}
-
-pub fn read_char() -> char {
-    while CUR_CHAR.lock().is_none() {
-        hlt();
-    }
-
-    let c = CUR_CHAR.lock().unwrap();
-    *CUR_CHAR.lock() = None;
-
-    print!("{c}");
-    c
 }

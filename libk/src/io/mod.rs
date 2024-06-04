@@ -1,4 +1,5 @@
 pub mod stderr;
+pub mod stdin;
 pub mod stdout;
 
 use alloc::string::{String, ToString};
@@ -13,6 +14,7 @@ pub enum Error {
     InvalidPath,
     PermissionsError,
     InvalidString,
+    ReadError,
     WriteError,
 }
 
