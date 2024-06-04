@@ -1,11 +1,11 @@
-from os import environ, system
+from os import environ
 from pathlib import Path
-from shutil import rmtree
 
 from .external_resources import fetch_extenal_resources
 from .build import build_buterscotch
 from .clean import clean
 from .img import makeimg
+from .system import system
 
 profile = environ.get("RUST_PROFILE", "dev")
 

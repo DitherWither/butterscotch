@@ -1,4 +1,4 @@
-from os import system
+from .system import system
 from pathlib import Path
 from urllib.request import urlretrieve
 
