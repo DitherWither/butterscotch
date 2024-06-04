@@ -1,5 +1,5 @@
-pub mod stdout;
 pub mod stderr;
+pub mod stdout;
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;

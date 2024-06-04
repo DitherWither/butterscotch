@@ -1,6 +1,5 @@
 use alloc::vec::Vec;
 use core::fmt;
-use core::fmt::Write;
 use libk::Mutex;
 use noto_sans_mono_bitmap::get_raster;
 use noto_sans_mono_bitmap::get_raster_width;
@@ -161,6 +160,12 @@ impl Console {
             }
             self.x_pos += char[0].len() + LETTER_SPACING;
         }
+    }
+}
+
+impl Default for Console {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -1,5 +1,5 @@
-use limine::{Framebuffer, NonNullPtr};
 use libk::Mutex;
+use limine::{Framebuffer, NonNullPtr};
 use x86_64::instructions::interrupts::without_interrupts;
 
 use crate::limine_requests::FRAMEBUFFER_REQUEST;
@@ -7,10 +7,10 @@ use crate::limine_requests::FRAMEBUFFER_REQUEST;
 pub static FRAMEBUFFER: Mutex<Option<FrameBufferWriter>> = Mutex::new(None);
 
 /// Initialize the VGA framebuffer related structures
-/// 
+///
 /// Must be called before any other framebuffer related structs are called,
 /// otherwise the requests will be ignored
-/// 
+///
 /// Called in kernel::init by default
 pub fn init() {
     without_interrupts(|| {

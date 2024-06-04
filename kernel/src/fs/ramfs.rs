@@ -22,7 +22,7 @@ pub struct RamFsDirectory {
 impl RamFsDirectory {
     fn _open(
         &self,
-        path: &Vec<String>,
+        path: &[String],
         read_only: bool,
         create: bool,
     ) -> Result<RamFsFile, io::Error> {
@@ -33,12 +33,12 @@ impl RamFsDirectory {
         // TODO This is stupid, find a way to do it in safe rust
         let contents_ptr = &mut contents as *mut MutexGuard<HashMap<String, RamFsNode>>;
         let contents = unsafe { &mut *contents_ptr };
-        if path.len() == 0 {
+        if path.is_empty() {
             return Err(io::Error::IsDirectory);
         }
         match contents.get(&path[0]) {
             Some(file) => match file {
-                RamFsNode::Directory(dir) => dir._open(&path[1..].to_vec(), read_only, create),
+                RamFsNode::Directory(dir) => dir._open(&path[1..], read_only, create),
                 RamFsNode::Regular(file) => Ok(file.open(read_only)),
             },
             None => {
@@ -70,6 +70,12 @@ impl RamFsDirectory {
     }
 }
 
+impl Default for RamFsDirectory {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Directory for RamFsDirectory {
     fn mkdir<T>(&self, path: T) -> Result<(), io::Error>
     where
@@ -78,7 +84,7 @@ impl Directory for RamFsDirectory {
         let path: Path = path.into();
         let path = path.segments;
         let mut contents = self.contents.lock();
-        if path.len() == 0 {
+        if path.is_empty() {
             return Ok(());
         }
 
