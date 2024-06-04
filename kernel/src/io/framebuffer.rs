@@ -1,5 +1,5 @@
 use limine::{Framebuffer, NonNullPtr};
-use spin::Mutex;
+use libk::Mutex;
 use x86_64::instructions::interrupts::without_interrupts;
 
 use crate::limine_requests::FRAMEBUFFER_REQUEST;

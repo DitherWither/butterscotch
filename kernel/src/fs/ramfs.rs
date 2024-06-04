@@ -1,12 +1,12 @@
-use crate::fs::{FileError, Path};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::cmp::min;
 use hashbrown::HashMap;
-use spin::Mutex;
-use spin::MutexGuard;
 
-use super::{Directory, File, Read, Seek, SeekFrom, Write};
+use super::{Directory, File};
+use libk::io::{self, Path, Read, Seek, SeekFrom, Write};
+use libk::Mutex;
+use libk::MutexGuard;
 
 #[derive(Debug)]
 pub enum RamFsNode {
@@ -25,7 +25,7 @@ impl RamFsDirectory {
         path: &Vec<String>,
         read_only: bool,
         create: bool,
-    ) -> Result<RamFsFile, FileError> {
+    ) -> Result<RamFsFile, io::Error> {
         let mut contents = self.contents.lock();
 
         // Stupid hack to force rust into giving us multiple mutable refs
@@ -34,7 +34,7 @@ impl RamFsDirectory {
         let contents_ptr = &mut contents as *mut MutexGuard<HashMap<String, RamFsNode>>;
         let contents = unsafe { &mut *contents_ptr };
         if path.len() == 0 {
-            return Err(FileError::IsDirectory);
+            return Err(io::Error::IsDirectory);
         }
         match contents.get(&path[0]) {
             Some(file) => match file {
@@ -43,7 +43,7 @@ impl RamFsDirectory {
             },
             None => {
                 if path.len() != 1 {
-                    return Err(FileError::InvalidPath);
+                    return Err(io::Error::InvalidPath);
                 }
                 if create {
                     let file = RegularFile::create();
@@ -55,7 +55,7 @@ impl RamFsDirectory {
                         panic!("How did this even happen");
                     }
                 } else {
-                    Err(FileError::NotFound)
+                    Err(io::Error::NotFound)
                 }
             }
         }
@@ -71,7 +71,7 @@ impl RamFsDirectory {
 }
 
 impl Directory for RamFsDirectory {
-    fn mkdir<T>(&self, path: T) -> Result<(), FileError>
+    fn mkdir<T>(&self, path: T) -> Result<(), io::Error>
     where
         T: Into<Path>,
     {
@@ -85,7 +85,7 @@ impl Directory for RamFsDirectory {
         match contents.get(&path[0]) {
             Some(file) => match file {
                 RamFsNode::Directory(dir) => dir.mkdir(&path[1..]),
-                RamFsNode::Regular(_) => Err(FileError::InvalidPath),
+                RamFsNode::Regular(_) => Err(io::Error::InvalidPath),
             },
             None => {
                 contents.insert(
@@ -106,7 +106,7 @@ impl Directory for RamFsDirectory {
         }
     }
 
-    fn open<T>(&self, path: T, read_only: bool) -> Result<impl File, FileError>
+    fn open<T>(&self, path: T, read_only: bool) -> Result<impl File, io::Error>
     where
         T: Into<Path>,
     {
@@ -114,7 +114,7 @@ impl Directory for RamFsDirectory {
         self._open(&path.segments, read_only, false)
     }
 
-    fn create<T>(&mut self, path: T) -> Result<impl File, FileError>
+    fn create<T>(&mut self, path: T) -> Result<impl File, io::Error>
     where
         T: Into<Path>,
     {
@@ -151,7 +151,7 @@ pub struct RamFsFile<'a> {
 }
 
 impl Read for RamFsFile<'_> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, FileError> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, io::Error> {
         let contents = self.contents.lock();
         let end = min(self.position + buf.len(), contents.len());
 
@@ -164,9 +164,9 @@ impl Read for RamFsFile<'_> {
 }
 
 impl Write for RamFsFile<'_> {
-    fn write(&mut self, buf: &[u8]) -> Result<usize, FileError> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, io::Error> {
         if self.read_only {
-            return Err(FileError::PermissionsError);
+            return Err(io::Error::PermissionsError);
         }
 
         let mut contents = self.contents.lock();
@@ -182,14 +182,14 @@ impl Write for RamFsFile<'_> {
     }
 
     // RamFS is always flushed instantly
-    fn flush(&mut self) -> Result<(), FileError> {
+    fn flush(&mut self) -> Result<(), io::Error> {
         Ok(())
     }
 }
 
 impl Seek for RamFsFile<'_> {
     // TODO: This code is horrible, refactor this
-    fn seek(&mut self, seek_from: SeekFrom) -> Result<u64, FileError> {
+    fn seek(&mut self, seek_from: SeekFrom) -> Result<u64, io::Error> {
         let len = self.contents.lock().len();
         match seek_from {
             SeekFrom::Start(n) => {
@@ -202,7 +202,7 @@ impl Seek for RamFsFile<'_> {
             SeekFrom::End(n) => {
                 let new_pos = len as i64 + n;
                 if new_pos < 0 {
-                    return Err(FileError::NegativeSeekError);
+                    return Err(io::Error::NegativeSeekError);
                 }
                 self.position = new_pos as usize;
                 if self.position > len {
@@ -213,7 +213,7 @@ impl Seek for RamFsFile<'_> {
             SeekFrom::Current(n) => {
                 let new_pos = self.position as i64 + n;
                 if new_pos < 0 {
-                    return Err(FileError::NegativeSeekError);
+                    return Err(io::Error::NegativeSeekError);
                 }
                 self.position = new_pos as usize;
                 if self.position > len {

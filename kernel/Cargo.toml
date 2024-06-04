@@ -4,13 +4,15 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+libk = { path = "../libk" }
 hashbrown = "0.14.5"
 limine = "0.1.12"
 noto-sans-mono-bitmap = { version = "0.2.0", features = ["unicode-specials"] }
 pc-keyboard = "0.7.0"
 pic8259 = "0.10.4"
-snafu = { version = "0.8.3", default-features = false, features = ["rust_1_65"] }
-spin = "0.9.8"
+snafu = { version = "0.8.3", default-features = false, features = [
+    "rust_1_65",
+] }
 talc = "4.0.0"
 uart_16550 = "0.3.0"
 x86_64 = "0.14.11"
