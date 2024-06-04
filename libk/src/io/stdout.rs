@@ -1,7 +1,7 @@
+use crate::fmt;
+use crate::fmt::Write;
 use crate::io::{self};
-use alloc::vec::Vec;
-use core::fmt;
-use core::fmt::Write;
+use crate::vec::Vec;
 
 use crate::{utils, Mutex};
 

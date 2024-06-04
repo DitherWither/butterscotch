@@ -1,5 +1,5 @@
-use alloc::vec::Vec;
-use core::fmt;
+use libk::fmt;
+use libk::vec::Vec;
 use libk::Mutex;
 use noto_sans_mono_bitmap::get_raster;
 use noto_sans_mono_bitmap::get_raster_width;

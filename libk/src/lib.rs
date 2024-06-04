@@ -1,7 +1,10 @@
 #![no_std]
 
-extern crate alloc;
-extern crate core;
+pub extern crate alloc;
+pub extern crate core;
+
+pub use alloc::{rc, slice, str, string, vec};
+pub use core::*;
 
 pub mod io;
 

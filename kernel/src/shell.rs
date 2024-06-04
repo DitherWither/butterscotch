@@ -1,12 +1,11 @@
-use alloc::string::String;
-use core::fmt::Debug;
-
 use crate::fs::Directory;
 use crate::*;
-use alloc::vec::Vec;
+use libk::fmt::Debug;
 use libk::io::stdin::stdin;
 use libk::io::stdout::STDOUT;
 use libk::io::{Read, Write};
+use libk::string::String;
+use libk::vec::Vec;
 
 pub fn run_shell() {
     println!();
