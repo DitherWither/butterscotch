@@ -6,12 +6,14 @@ use crate::{
     memory,
 };
 
+use libk::Mutex;
+
 #[global_allocator]
-static ALLOCATOR: Talck<spin::Mutex<()>, ErrOnOom> = Talc::new(ErrOnOom).lock();
+static ALLOCATOR: Talck<Mutex<()>, ErrOnOom> = Talc::new(ErrOnOom).lock();
 
 // TODO: Use 2MiB pages instead for better performance
 /// Initialize the allocator
-/// 
+///
 /// Called by kernel::init by default
 pub fn init() {
     let heap_start = VirtAddr::new(HEAP_START as u64);

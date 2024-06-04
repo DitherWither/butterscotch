@@ -22,6 +22,8 @@ pub mod fs;
 pub use kernel::init;
 use shell::run_shell;
 
+pub use libk::{dbg, print, println, eprint, eprintln};
+
 #[no_mangle]
 unsafe extern "C" fn _start() -> ! {
     init();

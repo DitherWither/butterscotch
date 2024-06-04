@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="CargoProjects">
+    <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d6362bd3-4de5-4edb-9883-a42e5fa75c6d" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/fs/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/fs/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/fs/ramfs.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/fs/ramfs.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/interrupt.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/interrupt.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/io/console.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/io/console.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/io/framebuffer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/io/framebuffer.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/io/serial.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/io/serial.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/kernel_allocator.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/kernel_allocator.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/memory.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/memory.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/shell.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/shell.rs" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="MacroExpansionManager">
+    <option name="directoryName" value="qqnjb9gg" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 5
+}]]></component>
+  <component name="ProjectId" id="2hQ2aAGjafUTmJbdWR4LD37l5mX" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "last_opened_file_path": "/home/vardhan/Projects/butterscotch",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.first.attach.projects": "true"
+  }
+}]]></component>
+  <component name="RustProjectSettings">
+    <option name="toolchainHomeDirectory" value="$USER_HOME$/.local/bin" />
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d6362bd3-4de5-4edb-9883-a42e5fa75c6d" name="Changes" comment="" />
+      <created>1717512043232</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1717512043232</updated>
+      <workItem from="1717512045987" duration="17000" />
+    </task>
+    <servers />
+  </component>
+</project>

@@ -2,6 +2,6 @@
 
 An operating system being developed in rust
 
-To build, use `make all`
+See `./builder.py` for building/running
 
-To run, use `make run`, `make run-uefi` for running in bios and uefi respectively
+TODO write proper instructions on building

@@ -3,7 +3,7 @@ use crate::*;
 use core::sync::atomic::{AtomicU64, Ordering};
 use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
-use spin::{self, Mutex};
+use libk::Mutex;
 use x86_64::instructions::hlt;
 use x86_64::instructions::port::Port;
 use x86_64::structures::idt::PageFaultErrorCode;
@@ -12,8 +12,8 @@ use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 pub const PIC_1_OFFSET: u8 = 32;
 pub const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
 
-pub static PICS: spin::Mutex<ChainedPics> =
-    spin::Mutex::new(unsafe { ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET) });
+pub static PICS: Mutex<ChainedPics> =
+    Mutex::new(unsafe { ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET) });
 
 static mut IDT: InterruptDescriptorTable = InterruptDescriptorTable::new();
 
@@ -163,8 +163,6 @@ pub fn read_char() -> char {
     let c = CUR_CHAR.lock().unwrap();
     *CUR_CHAR.lock() = None;
     
-    serial_print!("{c}");
-    console_print!("{c}");
-
+    print!("{c}");
     c
 }

@@ -1,14 +1,13 @@
 use core::fmt::Debug;
 
-use crate::{
-    console_dbg, eprint, eprintln,
-    fs::{self, Directory, Read, Write},
-    io, serial_dbg,
-};
-use alloc::string::{FromUtf8Error, String};
+use crate::*;
 use alloc::vec::Vec;
+use libk::io::{Read, Write};
+use libk::io::stdout::STDOUT;
+use crate::fs::Directory;
 
 pub fn run_shell() {
+    println!();
     let prompt = "$";
     let mut files = fs::ramfs::RamFsDirectory::new();
 
@@ -22,13 +21,7 @@ pub fn run_shell() {
     }
 }
 
-pub fn string_from_u8_nul_utf(utf8_src: &[u8]) -> Result<String, FromUtf8Error> {
-    let nul_range_end = utf8_src
-        .iter()
-        .position(|&c| c == b'\0')
-        .unwrap_or(utf8_src.len()); // default to length if no `\0` present
-    String::from_utf8(utf8_src[0..nul_range_end].to_vec())
-}
+
 
 fn shell_inner(prompt: &str, files: &mut (impl Directory + Debug)) -> Option<()> {
     eprint!("{prompt} ");
@@ -38,11 +31,11 @@ fn shell_inner(prompt: &str, files: &mut (impl Directory + Debug)) -> Option<()>
 
     match command {
         "help" => {
-            eprintln!("Currently available commands: help, echo, clear, put, cat, fsdump, mkdir")
+            println!("Currently available commands: help, echo, clear, put, cat, fsdump, mkdir")
         }
         "echo" => {
             // TODO remove command
-            eprintln!("{}", line_raw);
+            println!("{}", line_raw);
         }
 
         "put" => {
@@ -58,14 +51,13 @@ fn shell_inner(prompt: &str, files: &mut (impl Directory + Debug)) -> Option<()>
 
             file.read(&mut buf).unwrap();
 
-            eprintln!("{}", string_from_u8_nul_utf(&buf).unwrap());
+            STDOUT.lock().write(&buf).unwrap();
         }
         "mkdir" => {
             files.mkdir(line[1]).unwrap();
         }
         "fsdump" => {
-            serial_dbg!(&files);
-            console_dbg!(&files);
+            dbg!(&files);
         }
         "clear" => {
             io::console::clear_screen();

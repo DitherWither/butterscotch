@@ -1,5 +1,5 @@
+use libk::Mutex;
 use limine::{MemmapEntry, MemoryMapEntryType, NonNullPtr};
-use spin::Mutex;
 use x86_64::{
     registers::control::Cr3,
     structures::paging::{
