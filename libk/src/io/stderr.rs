@@ -4,7 +4,7 @@ use core::fmt::Write;
 use crate::io::stdout::Stdout;
 use crate::Mutex;
 
-type Stderr = Stdout
+type Stderr = Stdout;
 
 pub static STDERR: Mutex<Stderr> = Mutex::new(Stderr::new());
 
