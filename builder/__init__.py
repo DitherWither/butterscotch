@@ -7,11 +7,11 @@ from .build import build_buterscotch
 from .clean import clean
 from .img import makeimg
 
-sysroot = Path(environ.get("SYSROOT", "sysroot")).resolve()
 profile = environ.get("RUST_PROFILE", "dev")
 
 
 def build(project_root: Path):
+    sysroot = Path(project_root, environ.get("SYSROOT", "sysroot")).resolve()
     fetch_extenal_resources(project_root)
     build_buterscotch(project_root, sysroot, profile)
     makeimg(project_root, sysroot)
