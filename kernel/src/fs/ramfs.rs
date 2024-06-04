@@ -1,10 +1,9 @@
-use hashbrown::HashMap;
+use super::{Directory, File};
 use libk::cmp::min;
+use libk::hash_map::HashMap;
+use libk::io::{self, Path, Read, Seek, SeekFrom, Write};
 use libk::string::{String, ToString};
 use libk::vec::Vec;
-
-use super::{Directory, File};
-use libk::io::{self, Path, Read, Seek, SeekFrom, Write};
 use libk::Mutex;
 use libk::MutexGuard;
 
