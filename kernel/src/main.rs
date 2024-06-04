@@ -17,6 +17,7 @@ pub mod kernel_allocator;
 pub mod limine_requests;
 pub mod memory;
 pub mod shell;
+pub mod fs;
 
 pub use kernel::init;
 use shell::run_shell;
