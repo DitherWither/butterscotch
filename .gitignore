@@ -1,5 +1,9 @@
 /limine
 /ovmf
 /sysroot
+/target
 *.iso
-*.hdd
+*.img
+**/*.rs.bk
+
+__pycache__
