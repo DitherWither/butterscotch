@@ -45,7 +45,7 @@ def install_limine(project_root: Path, dir: Path):
         "limine-uefi-cd.bin",
     ]
     dir.mkdir()
-    copy("limine.cfg", dir.joinpath("limine.cfg"))
+    copy(project_root.joinpath("limine.cfg"), dir.joinpath("limine.cfg"))
     for file in limine_files:
         copy(project_root.joinpath("limine", file), dir.joinpath(file))
 
