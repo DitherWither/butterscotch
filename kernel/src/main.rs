@@ -10,6 +10,7 @@
 extern crate alloc;
 
 pub mod constants;
+pub mod fs;
 pub mod interrupt;
 pub mod io;
 pub mod kernel;
@@ -17,12 +18,11 @@ pub mod kernel_allocator;
 pub mod limine_requests;
 pub mod memory;
 pub mod shell;
-pub mod fs;
 
 pub use kernel::init;
 use shell::run_shell;
 
-pub use libk::{dbg, print, println, eprint, eprintln};
+pub use libk::{dbg, eprint, eprintln, print, println};
 
 #[no_mangle]
 unsafe extern "C" fn _start() -> ! {

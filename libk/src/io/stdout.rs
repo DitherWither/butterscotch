@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use core::fmt;
 use core::fmt::Write;
 
-use crate::{Mutex, utils};
+use crate::{utils, Mutex};
 
 pub static STDOUT: Mutex<Stdout> = Mutex::new(Stdout::new());
 

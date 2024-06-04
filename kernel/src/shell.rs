@@ -1,10 +1,10 @@
 use core::fmt::Debug;
 
+use crate::fs::Directory;
 use crate::*;
 use alloc::vec::Vec;
-use libk::io::{Read, Write};
 use libk::io::stdout::STDOUT;
-use crate::fs::Directory;
+use libk::io::{Read, Write};
 
 pub fn run_shell() {
     println!();
@@ -12,7 +12,7 @@ pub fn run_shell() {
     let mut files = fs::ramfs::RamFsDirectory::new();
 
     loop {
-        match shell_inner(&prompt, &mut files) {
+        match shell_inner(prompt, &mut files) {
             None => {
                 eprintln!("Some error occured");
             }
@@ -20,8 +20,6 @@ pub fn run_shell() {
         }
     }
 }
-
-
 
 fn shell_inner(prompt: &str, files: &mut (impl Directory + Debug)) -> Option<()> {
     eprint!("{prompt} ");

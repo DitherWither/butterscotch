@@ -1,4 +1,6 @@
-use libk::println;
+use crate::io::console::CONSOLE;
+use crate::io::serial;
+use crate::io::serial::SERIAL1;
 use crate::{
     constants::KERNEL_VERSION,
     io::{
@@ -7,9 +9,7 @@ use crate::{
     },
     *,
 };
-use crate::io::console::CONSOLE;
-use crate::io::serial;
-use crate::io::serial::SERIAL1;
+use libk::println;
 
 /// Performs early kernel initialization
 pub fn init() {

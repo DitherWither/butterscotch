@@ -1,9 +1,9 @@
 use crate::io::console;
 use crate::*;
 use core::sync::atomic::{AtomicU64, Ordering};
+use libk::Mutex;
 use pc_keyboard::{layouts, DecodedKey, HandleControl, KeyCode, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
-use libk::Mutex;
 use x86_64::instructions::hlt;
 use x86_64::instructions::port::Port;
 use x86_64::structures::idt::PageFaultErrorCode;
@@ -162,7 +162,7 @@ pub fn read_char() -> char {
 
     let c = CUR_CHAR.lock().unwrap();
     *CUR_CHAR.lock() = None;
-    
+
     print!("{c}");
     c
 }
