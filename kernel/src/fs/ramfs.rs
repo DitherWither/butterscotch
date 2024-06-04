@@ -62,13 +62,15 @@ impl RamFsDirectory {
     }
 }
 
-impl Directory for RamFsDirectory {
-    fn new() -> RamFsDirectory {
+impl RamFsDirectory {
+    pub fn new() -> RamFsDirectory {
         RamFsDirectory {
             contents: Default::default(),
         }
     }
+}
 
+impl Directory for RamFsDirectory {
     fn mkdir<T>(&self, path: T) -> Result<(), FileError>
     where
         T: Into<Path>,
@@ -86,7 +88,10 @@ impl Directory for RamFsDirectory {
                 RamFsNode::Regular(_) => Err(FileError::InvalidPath),
             },
             None => {
-                contents.insert(path[0].to_string(), RamFsNode::Directory(RamFsDirectory::new()));
+                contents.insert(
+                    path[0].to_string(),
+                    RamFsNode::Directory(RamFsDirectory::new()),
+                );
                 // Run in case the path has more segments after this
                 if path.len() > 1 {
                     if let Some(RamFsNode::Directory(dir)) = contents.get(&path[0]) {

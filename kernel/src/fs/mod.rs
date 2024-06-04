@@ -38,8 +38,6 @@ impl From<&[String]> for Path {
 }
 
 pub trait Directory {
-    fn new() -> Self;
-
     fn mkdir<T>(&self, path: T) -> Result<(), FileError>
     where
         T: Into<Path>;
