@@ -1,53 +1,45 @@
-use crate::fs::Path;
+use crate::fs::{FileError, Path};
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::cmp::min;
 use hashbrown::HashMap;
-use snafu::Snafu;
 use spin::Mutex;
 use spin::MutexGuard;
 
-#[derive(Snafu, Debug)]
-pub enum FileError {
-    NegativeSeekError,
-    IsDirectory,
-    NotFound,
-    InvalidPath,
-    PermissionsError,
-}
+use super::{Directory, File, Read, Seek, SeekFrom, Write};
 
 #[derive(Debug)]
-pub enum File {
-    Directory(Directory),
+pub enum RamFsNode {
+    Directory(RamFsDirectory),
     Regular(RegularFile),
 }
 
 #[derive(Debug)]
-pub struct Directory {
-    contents: Mutex<HashMap<String, File>>,
+pub struct RamFsDirectory {
+    contents: Mutex<HashMap<String, RamFsNode>>,
 }
 
-impl Directory {
-    pub fn new() -> Directory {
-        Directory {
-            contents: Default::default(),
-        }
-    }
-    fn _open(&self, path: &Vec<String>, read_only: bool, create: bool) -> Result<OpenFile, FileError> {
+impl RamFsDirectory {
+    fn _open(
+        &self,
+        path: &Vec<String>,
+        read_only: bool,
+        create: bool,
+    ) -> Result<RamFsFile, FileError> {
         let mut contents = self.contents.lock();
 
         // Stupid hack to force rust into giving us multiple mutable refs
         // by casting to a pointer and casting back to a ref
         // TODO This is stupid, find a way to do it in safe rust
-        let contents_ptr = &mut contents as *mut MutexGuard<HashMap<String, File>>;
+        let contents_ptr = &mut contents as *mut MutexGuard<HashMap<String, RamFsNode>>;
         let contents = unsafe { &mut *contents_ptr };
         if path.len() == 0 {
             return Err(FileError::IsDirectory);
         }
         match contents.get(&path[0]) {
             Some(file) => match file {
-                File::Directory(dir) => dir._open(&path[1..].to_vec(), read_only, create),
-                File::Regular(file) => Ok(file.open(read_only)),
+                RamFsNode::Directory(dir) => dir._open(&path[1..].to_vec(), read_only, create),
+                RamFsNode::Regular(file) => Ok(file.open(read_only)),
             },
             None => {
                 if path.len() != 1 {
@@ -56,8 +48,8 @@ impl Directory {
                 if create {
                     let file = RegularFile::create();
                     let contents = unsafe { &mut *contents_ptr };
-                    contents.insert(path[0].to_string(), File::Regular(file));
-                    if let Some(File::Regular(file)) = contents.get(&path[0]) {
+                    contents.insert(path[0].to_string(), RamFsNode::Regular(file));
+                    if let Some(RamFsNode::Regular(file)) = contents.get(&path[0]) {
                         Ok(file.open(read_only))
                     } else {
                         panic!("How did this even happen");
@@ -68,8 +60,16 @@ impl Directory {
             }
         }
     }
+}
 
-    pub fn mkdir<T>(&self, path: T) -> Result<(), FileError>
+impl Directory for RamFsDirectory {
+    fn new() -> RamFsDirectory {
+        RamFsDirectory {
+            contents: Default::default(),
+        }
+    }
+
+    fn mkdir<T>(&self, path: T) -> Result<(), FileError>
     where
         T: Into<Path>,
     {
@@ -82,14 +82,14 @@ impl Directory {
 
         match contents.get(&path[0]) {
             Some(file) => match file {
-                File::Directory(dir) => dir.mkdir(&path[1..]),
-                File::Regular(_) => Err(FileError::InvalidPath),
+                RamFsNode::Directory(dir) => dir.mkdir(&path[1..]),
+                RamFsNode::Regular(_) => Err(FileError::InvalidPath),
             },
             None => {
-                contents.insert(path[0].to_string(), File::Directory(Directory::new()));
+                contents.insert(path[0].to_string(), RamFsNode::Directory(RamFsDirectory::new()));
                 // Run in case the path has more segments after this
                 if path.len() > 1 {
-                    if let Some(File::Directory(dir)) = contents.get(&path[0]) {
+                    if let Some(RamFsNode::Directory(dir)) = contents.get(&path[0]) {
                         dir.mkdir(&path[1..])
                     } else {
                         panic!("How did this happen");
@@ -101,7 +101,7 @@ impl Directory {
         }
     }
 
-    pub fn open<T>(&self, path: T, read_only: bool) -> Result<OpenFile, FileError>
+    fn open<T>(&self, path: T, read_only: bool) -> Result<impl File, FileError>
     where
         T: Into<Path>,
     {
@@ -109,7 +109,7 @@ impl Directory {
         self._open(&path.segments, read_only, false)
     }
 
-    pub fn create<T>(&mut self, path: T) -> Result<OpenFile, FileError>
+    fn create<T>(&mut self, path: T) -> Result<impl File, FileError>
     where
         T: Into<Path>,
     {
@@ -129,8 +129,8 @@ impl RegularFile {
             contents: Default::default(),
         }
     }
-    pub fn open(&self, read_only: bool) -> OpenFile {
-        OpenFile {
+    pub fn open(&self, read_only: bool) -> RamFsFile {
+        RamFsFile {
             contents: &self.contents,
             position: 0,
             read_only,
@@ -139,21 +139,14 @@ impl RegularFile {
 }
 
 #[derive(Debug)]
-pub struct OpenFile<'a> {
+pub struct RamFsFile<'a> {
     contents: &'a Mutex<Vec<u8>>,
     position: usize,
     read_only: bool,
 }
 
-#[derive(Debug)]
-pub enum SeekFrom {
-    Start(u64),
-    End(i64),
-    Current(i64),
-}
-
-impl OpenFile<'_> {
-    pub fn read(&mut self, buf: &mut [u8]) -> Result<usize, FileError> {
+impl Read for RamFsFile<'_> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, FileError> {
         let contents = self.contents.lock();
         let end = min(self.position + buf.len(), contents.len());
 
@@ -163,8 +156,10 @@ impl OpenFile<'_> {
         buf[end - self.position] = 0;
         Ok(end - self.position)
     }
+}
 
-    pub fn write(&mut self, buf: &[u8]) -> Result<usize, FileError> {
+impl Write for RamFsFile<'_> {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, FileError> {
         if self.read_only {
             return Err(FileError::PermissionsError);
         }
@@ -182,12 +177,14 @@ impl OpenFile<'_> {
     }
 
     // RamFS is always flushed instantly
-    pub fn flush(&mut self) -> Result<(), FileError> {
+    fn flush(&mut self) -> Result<(), FileError> {
         Ok(())
     }
+}
 
+impl Seek for RamFsFile<'_> {
     // TODO: This code is horrible, refactor this
-    pub fn seek(&mut self, seek_from: SeekFrom) -> Result<u64, FileError> {
+    fn seek(&mut self, seek_from: SeekFrom) -> Result<u64, FileError> {
         let len = self.contents.lock().len();
         match seek_from {
             SeekFrom::Start(n) => {

@@ -1,6 +1,8 @@
+use core::fmt::Debug;
+
 use crate::{
     console_dbg, eprint, eprintln,
-    fs::{self, ramfs},
+    fs::{self, Directory, Read, Write},
     io, serial_dbg,
 };
 use alloc::string::{FromUtf8Error, String};
@@ -8,7 +10,7 @@ use alloc::vec::Vec;
 
 pub fn run_shell() {
     let prompt = "$";
-    let mut files = fs::ramfs::Directory::new();
+    let mut files = fs::ramfs::RamFsDirectory::new();
 
     loop {
         match shell_inner(&prompt, &mut files) {
@@ -28,7 +30,7 @@ pub fn string_from_u8_nul_utf(utf8_src: &[u8]) -> Result<String, FromUtf8Error> 
     String::from_utf8(utf8_src[0..nul_range_end].to_vec())
 }
 
-fn shell_inner(prompt: &str, files: &mut ramfs::Directory) -> Option<()> {
+fn shell_inner(prompt: &str, files: &mut (impl Directory + Debug)) -> Option<()> {
     eprint!("{prompt} ");
     let line_raw = io::stdin::read_line();
     let line: Vec<&str> = line_raw.split_whitespace().collect();
@@ -59,7 +61,7 @@ fn shell_inner(prompt: &str, files: &mut ramfs::Directory) -> Option<()> {
             eprintln!("{}", string_from_u8_nul_utf(&buf).unwrap());
         }
         "mkdir" => {
-            files.mkdir(line[1]);
+            files.mkdir(line[1]).unwrap();
         }
         "fsdump" => {
             serial_dbg!(&files);
