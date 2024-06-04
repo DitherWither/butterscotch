@@ -1,5 +1,5 @@
-use core::fmt;
-use core::fmt::Write;
+use crate::fmt;
+use crate::fmt::Write;
 
 use crate::io::stdout::Stdout;
 use crate::Mutex;

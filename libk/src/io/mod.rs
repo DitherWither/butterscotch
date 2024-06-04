@@ -2,8 +2,8 @@ pub mod stderr;
 pub mod stdin;
 pub mod stdout;
 
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
+use crate::string::{String, ToString};
+use crate::vec::Vec;
 use snafu::Snafu;
 
 #[derive(Snafu, Debug)]

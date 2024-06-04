@@ -40,7 +40,7 @@ pub fn hlt_loop() -> ! {
 }
 
 #[panic_handler]
-fn panic(info: &core::panic::PanicInfo) -> ! {
+fn panic(info: &libk::panic::PanicInfo) -> ! {
     eprintln!("{}", info);
     hlt_loop()
 }

@@ -1,7 +1,7 @@
-use alloc::string::{String, ToString};
-use alloc::vec::Vec;
-use core::cmp::min;
 use hashbrown::HashMap;
+use libk::cmp::min;
+use libk::string::{String, ToString};
+use libk::vec::Vec;
 
 use super::{Directory, File};
 use libk::io::{self, Path, Read, Seek, SeekFrom, Write};

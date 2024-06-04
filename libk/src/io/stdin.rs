@@ -1,8 +1,8 @@
 use super::{Error, Read};
 use crate::hlt::hlt;
 use crate::print;
-use alloc::string::String;
-use alloc::vec::Vec;
+use crate::string::String;
+use crate::vec::Vec;
 use spin::Mutex;
 
 #[derive(Clone)]

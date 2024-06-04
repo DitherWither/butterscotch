@@ -1,5 +1,5 @@
 use crate::*;
-use core::sync::atomic::{AtomicU64, Ordering};
+use libk::sync::atomic::{AtomicU64, Ordering};
 use libk::Mutex;
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use pic8259::ChainedPics;
