@@ -1,5 +1,5 @@
 from pathlib import Path
-from os import system
+from .system import system
 
 
 def makeimg(project_root: Path, sysroot: Path):
