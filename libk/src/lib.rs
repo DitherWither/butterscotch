@@ -11,4 +11,5 @@ pub mod io;
 mod hlt;
 mod utils;
 
+pub use hashbrown::{hash_map, hash_set, hash_table};
 pub use spin::{Mutex, MutexGuard};
