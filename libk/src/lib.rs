@@ -5,6 +5,7 @@ extern crate core;
 
 pub mod io;
 
+mod hlt;
 mod utils;
 
 pub use spin::{Mutex, MutexGuard};
