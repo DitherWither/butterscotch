@@ -1,3 +1,4 @@
+use crate::fs::Path;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 use core::cmp::min;
@@ -32,7 +33,7 @@ impl Directory {
             contents: Default::default(),
         }
     }
-    fn _open(&self, path: &[&str], read_only: bool, create: bool) -> Result<OpenFile, FileError> {
+    fn _open(&self, path: &Vec<String>, read_only: bool, create: bool) -> Result<OpenFile, FileError> {
         let mut contents = self.contents.lock();
 
         // Stupid hack to force rust into giving us multiple mutable refs
@@ -43,9 +44,9 @@ impl Directory {
         if path.len() == 0 {
             return Err(FileError::IsDirectory);
         }
-        match contents.get(path[0]) {
+        match contents.get(&path[0]) {
             Some(file) => match file {
-                File::Directory(dir) => dir._open(&path[1..], read_only, create),
+                File::Directory(dir) => dir._open(&path[1..].to_vec(), read_only, create),
                 File::Regular(file) => Ok(file.open(read_only)),
             },
             None => {
@@ -56,7 +57,7 @@ impl Directory {
                     let file = RegularFile::create();
                     let contents = unsafe { &mut *contents_ptr };
                     contents.insert(path[0].to_string(), File::Regular(file));
-                    if let Some(File::Regular(file)) = contents.get(path[0]) {
+                    if let Some(File::Regular(file)) = contents.get(&path[0]) {
                         Ok(file.open(read_only))
                     } else {
                         panic!("How did this even happen");
@@ -68,22 +69,27 @@ impl Directory {
         }
     }
 
-    pub fn mkdir(&self, path: &[&str]) -> Result<(), FileError> {
+    pub fn mkdir<T>(&self, path: T) -> Result<(), FileError>
+    where
+        T: Into<Path>,
+    {
+        let path: Path = path.into();
+        let path = path.segments;
         let mut contents = self.contents.lock();
         if path.len() == 0 {
             return Ok(());
         }
 
-        match contents.get(path[0]) {
+        match contents.get(&path[0]) {
             Some(file) => match file {
                 File::Directory(dir) => dir.mkdir(&path[1..]),
-                File::Regular(file) => Err(FileError::InvalidPath),
+                File::Regular(_) => Err(FileError::InvalidPath),
             },
             None => {
                 contents.insert(path[0].to_string(), File::Directory(Directory::new()));
                 // Run in case the path has more segments after this
                 if path.len() > 1 {
-                    if let Some(File::Directory(dir)) = contents.get(path[0]) {
+                    if let Some(File::Directory(dir)) = contents.get(&path[0]) {
                         dir.mkdir(&path[1..])
                     } else {
                         panic!("How did this happen");
@@ -95,12 +101,20 @@ impl Directory {
         }
     }
 
-    pub fn open(&self, path: &[&str], read_only: bool) -> Result<OpenFile, FileError> {
-        self._open(path, read_only, false)
+    pub fn open<T>(&self, path: T, read_only: bool) -> Result<OpenFile, FileError>
+    where
+        T: Into<Path>,
+    {
+        let path: Path = path.into();
+        self._open(&path.segments, read_only, false)
     }
 
-    pub fn create(&mut self, path: &[&str]) -> Result<OpenFile, FileError> {
-        self._open(path, false, true)
+    pub fn create<T>(&mut self, path: T) -> Result<OpenFile, FileError>
+    where
+        T: Into<Path>,
+    {
+        let path: Path = path.into();
+        self._open(&path.segments, false, true)
     }
 }
 
