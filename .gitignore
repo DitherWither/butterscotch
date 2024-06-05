@@ -1,7 +1,6 @@
 /limine
 /ovmf
 /sysroot
-/target
 *.iso
 *.img
 **/*.rs.bk

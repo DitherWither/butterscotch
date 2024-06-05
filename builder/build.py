@@ -12,8 +12,8 @@ def build_buterscotch(project_root: Path, sysroot: Path, profile: str):
 
 
 def build_cargo(project_root: Path, profile: str):
-    manifest = project_root.joinpath("Cargo.toml")
-    system(f"cargo build --profile {profile} --manifest-path {manifest}")
+    kernel = project_root.joinpath("kernel")
+    system(f"cd {kernel} && cargo build --profile {profile} --manifest-path {kernel.joinpath("Cargo.toml")}")
 
 
 def make_sysroot(
@@ -68,7 +68,7 @@ def get_build_dir(project_root: Path, profile: str) -> Path:
         profile_dirname = "debug"
 
     build_dir = project_root.joinpath(
-        "target/x86_64-butterscotch_kernel/", profile_dirname
+        "kernel/target/x86_64-butterscotch_kernel/", profile_dirname
     )
 
     return build_dir
