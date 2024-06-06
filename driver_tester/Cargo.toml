@@ -4,4 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+color-eyre = "0.6.3"
 fat32 = {path = "../kernel/fat32"}
+libk = {path = "../kernel/libk"}
