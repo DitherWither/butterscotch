@@ -30,7 +30,6 @@ impl Read for RamFile<'_> {
         for (i, el) in contents[self.position..end].iter().enumerate() {
             buf[i] = *el;
         }
-        buf[end - self.position] = 0;
         Ok(end - self.position)
     }
 }
