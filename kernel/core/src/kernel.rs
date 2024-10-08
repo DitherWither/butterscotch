@@ -29,5 +29,5 @@ pub fn init() {
     libk::io::stderr::add_sink(&SERIAL1);
 
     println!(" :: Butterscotch OS {KERNEL_VERSION} :: ");
-    println!("Copyright 2024 Vardhan Patil");
+    println!("Copyright 2024 DitherWither");
 }
